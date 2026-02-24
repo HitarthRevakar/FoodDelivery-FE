@@ -28,6 +28,7 @@ import {
   Eye,
   Edit,
   UserX,
+  MapPin,
 } from "lucide-react"
 import { useAuth } from "../../contexts/auth-context"
 import {
@@ -64,6 +65,7 @@ export function AdminDashboard() {
   const [commissionInput, setCommissionInput] = useState("")
   const [toast, setToast] = useState<string | null>(null)
   const [users, setUsers] = useState(SIMULATED_USERS)
+  const [showUserMenu, setShowUserMenu] = useState(false)
 
   useEffect(() => {
     refreshData()
@@ -158,27 +160,69 @@ export function AdminDashboard() {
       )}
 
       {/* Header */}
-      <header className="bg-white shadow-sm border-b">
+      <header className="bg-white shadow-sm border-b sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-14 sm:h-16">
-            <div className="flex items-center min-w-0">
-              <Shield className="h-6 w-6 sm:h-8 sm:w-8 text-orange-500 mr-2 sm:mr-3 shrink-0" />
-              <div className="min-w-0">
-                <h1 className="text-base sm:text-xl font-bold text-gray-900">Admin Dashboard</h1>
-                <p className="text-xs sm:text-sm text-gray-500">System Administration</p>
+          <div className="flex items-center h-16 gap-4">
+
+            {/* Left: FoodHub brand + Admin info */}
+            <div className="flex items-center gap-3 min-w-0">
+              {/* FoodHub brand */}
+              <div className="flex items-center gap-2 shrink-0">
+                <div className="w-8 h-8 bg-purple-600 rounded-xl flex items-center justify-center">
+                  <Shield className="h-4 w-4 text-white" />
+                </div>
+                <span className="text-xl font-extrabold text-purple-600 tracking-tight hidden sm:block">FoodHub</span>
+              </div>
+
+              {/* Divider */}
+              <div className="hidden sm:block w-px h-7 bg-gray-200" />
+
+              {/* Admin info */}
+              <div className="flex items-start gap-1.5 min-w-0">
+                <Shield className="h-4 w-4 text-purple-500 mt-0.5 shrink-0" />
+                <div className="min-w-0">
+                  <p className="text-[9px] text-gray-400 uppercase tracking-widest font-semibold leading-none">System Admin</p>
+                  <p className="text-sm font-bold text-gray-900 truncate">{user?.name}</p>
+                </div>
               </div>
             </div>
-            <div className="flex items-center space-x-2 sm:space-x-4">
-              <div className="hidden sm:flex items-center space-x-2">
-                <Avatar className="h-8 w-8">
-                  <AvatarFallback>{user?.name?.charAt(0)}</AvatarFallback>
-                </Avatar>
-                <span className="text-sm font-medium">{user?.name}</span>
+
+            {/* Right: Avatar dropdown */}
+            <div className="ml-auto flex items-center gap-2">
+              <div className="relative">
+                <button
+                  onClick={() => setShowUserMenu(!showUserMenu)}
+                  className="flex items-center gap-2 pl-1 pr-3 py-1 rounded-full hover:bg-gray-100 transition border border-transparent hover:border-gray-200"
+                >
+                  <div className="w-8 h-8 rounded-full bg-purple-600 flex items-center justify-center text-white text-sm font-bold">
+                    {user?.name?.charAt(0)?.toUpperCase()}
+                  </div>
+                  <span className="hidden sm:block text-sm font-medium text-gray-700 max-w-[90px] truncate">{user?.name?.split(" ")[0]}</span>
+                  <svg className="h-3.5 w-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+
+                {showUserMenu && (
+                  <>
+                    <div className="fixed inset-0 z-40" onClick={() => setShowUserMenu(false)} />
+                    <div className="absolute right-0 top-full mt-2 w-52 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden z-50">
+                      <div className="px-4 py-3 border-b bg-gray-50">
+                        <p className="text-sm font-bold text-gray-900 truncate">{user?.name}</p>
+                        <p className="text-xs text-gray-500 truncate">{user?.email}</p>
+                      </div>
+                      <div className="border-t" />
+                      <button
+                        onClick={() => { setShowUserMenu(false); logout() }}
+                        className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition text-left"
+                      >
+                        <LogOut className="h-4 w-4" />
+                        Logout
+                      </button>
+                    </div>
+                  </>
+                )}
               </div>
-              <Button variant="outline" size="sm" onClick={logout} className="px-2 sm:px-3">
-                <LogOut className="h-4 w-4 sm:mr-2" />
-                <span className="hidden sm:inline">Logout</span>
-              </Button>
             </div>
           </div>
         </div>
@@ -244,7 +288,7 @@ export function AdminDashboard() {
                 <DollarSign className="h-6 w-6 sm:h-8 sm:w-8 text-emerald-600 shrink-0" />
                 <div className="ml-3 sm:ml-4 min-w-0">
                   <p className="text-xs sm:text-sm font-medium text-gray-600">Today's Revenue</p>
-                  <p className="text-lg sm:text-2xl font-bold text-gray-900">${todayRevenue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                  <p className="text-lg sm:text-2xl font-bold text-gray-900">₹{todayRevenue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
                 </div>
               </div>
             </CardContent>
@@ -256,7 +300,7 @@ export function AdminDashboard() {
                 <TrendingUp className="h-6 w-6 sm:h-8 sm:w-8 text-indigo-600 shrink-0" />
                 <div className="ml-3 sm:ml-4 min-w-0">
                   <p className="text-xs sm:text-sm font-medium text-gray-600">Monthly Revenue</p>
-                  <p className="text-lg sm:text-2xl font-bold text-gray-900">${monthlyRevenue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                  <p className="text-lg sm:text-2xl font-bold text-gray-900">₹{monthlyRevenue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
                 </div>
               </div>
             </CardContent>
@@ -304,7 +348,7 @@ export function AdminDashboard() {
 
           {/* ─── Overview Tab ─── */}
           <TabsContent value="overview" className="mt-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 gap-6">
               <Card>
                 <CardHeader>
                   <CardTitle>Recent Orders</CardTitle>
@@ -328,7 +372,7 @@ export function AdminDashboard() {
                             <p className="text-xs text-gray-500">{order.time}</p>
                           </div>
                           <div className="text-right">
-                            <p className="font-semibold">${order.total.toFixed(2)}</p>
+                            <p className="font-semibold">₹{order.total.toFixed(2)}</p>
                             <Badge className={getStatusColor(order.status)} variant="secondary">
                               {order.status}
                             </Badge>
@@ -348,7 +392,7 @@ export function AdminDashboard() {
                             <p className="text-xs text-gray-500">{new Date(order.createdAt).toLocaleString()}</p>
                           </div>
                           <div className="text-right">
-                            <p className="font-semibold">${order.total.toFixed(2)}</p>
+                            <p className="font-semibold">₹{order.total.toFixed(2)}</p>
                             <Badge className={getStatusColor(order.status)} variant="secondary">
                               {order.status}
                             </Badge>
@@ -357,45 +401,6 @@ export function AdminDashboard() {
                       ))}
                     </div>
                   )}
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>System Status</CardTitle>
-                  <CardDescription>Platform health metrics</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between p-3 border rounded-lg">
-                      <div className="flex items-center">
-                        <CheckCircle className="h-5 w-5 text-green-500 mr-2" />
-                        <span className="font-medium">API Status</span>
-                      </div>
-                      <Badge className="bg-green-100 text-green-800">Operational</Badge>
-                    </div>
-                    <div className="flex items-center justify-between p-3 border rounded-lg">
-                      <div className="flex items-center">
-                        <CheckCircle className="h-5 w-5 text-green-500 mr-2" />
-                        <span className="font-medium">Database</span>
-                      </div>
-                      <Badge className="bg-green-100 text-green-800">Healthy</Badge>
-                    </div>
-                    <div className="flex items-center justify-between p-3 border rounded-lg">
-                      <div className="flex items-center">
-                        <AlertCircle className="h-5 w-5 text-blue-500 mr-2" />
-                        <span className="font-medium">Active Orders</span>
-                      </div>
-                      <Badge className="bg-blue-100 text-blue-800">{activeOrders.length || 234}</Badge>
-                    </div>
-                    <div className="flex items-center justify-between p-3 border rounded-lg">
-                      <div className="flex items-center">
-                        <Clock className="h-5 w-5 text-purple-500 mr-2" />
-                        <span className="font-medium">Avg Response Time</span>
-                      </div>
-                      <Badge className="bg-purple-100 text-purple-800">245ms</Badge>
-                    </div>
-                  </div>
                 </CardContent>
               </Card>
             </div>
@@ -438,8 +443,8 @@ export function AdminDashboard() {
                           </p>
                         </div>
                         <div className="text-right">
-                          <p className="text-lg font-semibold">${order.total.toFixed(2)}</p>
-                          <p className="text-sm text-gray-500">Commission: ${(order.total * (settings?.commissionRate ?? 15) / 100).toFixed(2)}</p>
+                          <p className="text-lg font-semibold">₹{order.total.toFixed(2)}</p>
+                          <p className="text-sm text-gray-500">Commission: ₹{(order.total * (settings?.commissionRate ?? 15) / 100).toFixed(2)}</p>
                         </div>
                       </div>
                     </CardContent>
@@ -614,7 +619,7 @@ export function AdminDashboard() {
                     <div className="flex items-center justify-between p-3 border rounded-lg">
                       <div>
                         <p className="font-medium">Delivery Fee Range</p>
-                        <p className="text-sm text-gray-600">${settings?.deliveryFeeMin} - ${settings?.deliveryFeeMax}</p>
+                        <p className="text-sm text-gray-600">₹{settings?.deliveryFeeMin} - ₹{settings?.deliveryFeeMax}</p>
                       </div>
                     </div>
                     <div className="flex items-center justify-between p-3 border rounded-lg">

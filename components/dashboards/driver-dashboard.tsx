@@ -18,6 +18,7 @@ import {
   CheckCircle,
   TrendingUp,
   Phone,
+  Store,
 } from "lucide-react"
 import { useAuth } from "../../contexts/auth-context"
 import {
@@ -35,6 +36,7 @@ export function DriverDashboard() {
   const [activeOrders, setActiveOrders] = useState<Order[]>([])
   const [completedOrders, setCompletedOrders] = useState<Order[]>([])
   const [toast, setToast] = useState<string | null>(null)
+  const [showUserMenu, setShowUserMenu] = useState(false)
 
   useEffect(() => {
     refreshData()
@@ -93,27 +95,69 @@ export function DriverDashboard() {
       )}
 
       {/* Header */}
-      <header className="bg-white shadow-sm border-b">
+      <header className="bg-white shadow-sm border-b sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-14 sm:h-16">
-            <div className="flex items-center min-w-0">
-              <Truck className="h-6 w-6 sm:h-8 sm:w-8 text-orange-500 mr-2 sm:mr-3 shrink-0" />
-              <div className="min-w-0">
-                <h1 className="text-base sm:text-xl font-bold text-gray-900">Driver Dashboard</h1>
-                <p className="text-xs sm:text-sm text-gray-500">Delivery Partner</p>
+          <div className="flex items-center h-16 gap-4">
+
+            {/* Left: FoodHub brand + Driver info */}
+            <div className="flex items-center gap-3 min-w-0">
+              {/* FoodHub brand */}
+              <div className="flex items-center gap-2 shrink-0">
+                <div className="w-8 h-8 bg-purple-600 rounded-xl flex items-center justify-center">
+                  <Truck className="h-4 w-4 text-white" />
+                </div>
+                <span className="text-xl font-extrabold text-purple-600 tracking-tight hidden sm:block">FoodHub</span>
+              </div>
+
+              {/* Divider */}
+              <div className="hidden sm:block w-px h-7 bg-gray-200" />
+
+              {/* Driver info */}
+              <div className="flex items-start gap-1.5 min-w-0">
+                <Truck className="h-4 w-4 text-purple-500 mt-0.5 shrink-0" />
+                <div className="min-w-0">
+                  <p className="text-[9px] text-gray-400 uppercase tracking-widest font-semibold leading-none">Delivery Partner</p>
+                  <p className="text-sm font-bold text-gray-900 truncate">{user?.name}</p>
+                </div>
               </div>
             </div>
-            <div className="flex items-center space-x-2 sm:space-x-4">
-              <div className="hidden sm:flex items-center space-x-2">
-                <Avatar className="h-8 w-8">
-                  <AvatarFallback>{user?.name?.charAt(0)}</AvatarFallback>
-                </Avatar>
-                <span className="text-sm font-medium">{user?.name}</span>
+
+            {/* Right: Avatar dropdown */}
+            <div className="ml-auto flex items-center gap-2">
+              <div className="relative">
+                <button
+                  onClick={() => setShowUserMenu(!showUserMenu)}
+                  className="flex items-center gap-2 pl-1 pr-3 py-1 rounded-full hover:bg-gray-100 transition border border-transparent hover:border-gray-200"
+                >
+                  <div className="w-8 h-8 rounded-full bg-purple-600 flex items-center justify-center text-white text-sm font-bold">
+                    {user?.name?.charAt(0)?.toUpperCase()}
+                  </div>
+                  <span className="hidden sm:block text-sm font-medium text-gray-700 max-w-[90px] truncate">{user?.name?.split(" ")[0]}</span>
+                  <svg className="h-3.5 w-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+
+                {showUserMenu && (
+                  <>
+                    <div className="fixed inset-0 z-40" onClick={() => setShowUserMenu(false)} />
+                    <div className="absolute right-0 top-full mt-2 w-52 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden z-50">
+                      <div className="px-4 py-3 border-b bg-gray-50">
+                        <p className="text-sm font-bold text-gray-900 truncate">{user?.name}</p>
+                        <p className="text-xs text-gray-500 truncate">{user?.email}</p>
+                      </div>
+                      <div className="border-t" />
+                      <button
+                        onClick={() => { setShowUserMenu(false); logout() }}
+                        className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition text-left"
+                      >
+                        <LogOut className="h-4 w-4" />
+                        Logout
+                      </button>
+                    </div>
+                  </>
+                )}
               </div>
-              <Button variant="outline" size="sm" onClick={logout} className="px-2 sm:px-3">
-                <LogOut className="h-4 w-4 sm:mr-2" />
-                <span className="hidden sm:inline">Logout</span>
-              </Button>
             </div>
           </div>
         </div>
@@ -128,7 +172,7 @@ export function DriverDashboard() {
                 <DollarSign className="h-8 w-8 text-green-600" />
                 <div className="ml-4">
                   <p className="text-sm font-medium text-gray-600">Earnings</p>
-                  <p className="text-2xl font-bold text-gray-900">${todayEarnings.toFixed(2)}</p>
+                  <p className="text-2xl font-bold text-gray-900">₹{todayEarnings.toFixed(2)}</p>
                 </div>
               </div>
             </CardContent>
@@ -231,8 +275,8 @@ export function DriverDashboard() {
                           </div>
                         </div>
                         <div className="text-right">
-                          <p className="text-lg font-semibold text-green-600">${order.total.toFixed(2)}</p>
-                          <p className="text-sm text-gray-600">~${(order.total * 0.15).toFixed(2)} tip</p>
+                          <p className="text-lg font-semibold text-green-600">₹{order.total.toFixed(2)}</p>
+                          <p className="text-sm text-gray-600">~₹{(order.total * 0.15).toFixed(2)} tip</p>
                         </div>
                       </div>
                       <Separator className="my-4" />
@@ -291,7 +335,7 @@ export function DriverDashboard() {
                           </div>
                         </div>
                         <div className="text-right">
-                          <p className="text-lg font-semibold text-green-600">${order.total.toFixed(2)}</p>
+                          <p className="text-lg font-semibold text-green-600">₹{order.total.toFixed(2)}</p>
                         </div>
                       </div>
                       <Separator className="my-4" />
@@ -330,7 +374,7 @@ export function DriverDashboard() {
                           <p className="text-sm text-gray-600">{order.restaurantName} → {order.customerName}</p>
                           <p className="text-xs text-gray-500">{new Date(order.updatedAt).toLocaleString()}</p>
                         </div>
-                        <p className="font-semibold text-green-600">${(order.total * 0.15).toFixed(2)}</p>
+                        <p className="font-semibold text-green-600">₹{(order.total * 0.15).toFixed(2)}</p>
                       </div>
                     </CardContent>
                   </Card>
@@ -400,7 +444,7 @@ export function DriverDashboard() {
                       </div>
                       <div>
                         <label className="text-sm font-medium text-gray-700">Total Earnings</label>
-                        <p className="mt-1 text-sm text-gray-900">${todayEarnings.toFixed(2)}</p>
+                        <p className="mt-1 text-sm text-gray-900">₹{todayEarnings.toFixed(2)}</p>
                       </div>
                       <div>
                         <label className="text-sm font-medium text-gray-700">Acceptance Rate</label>

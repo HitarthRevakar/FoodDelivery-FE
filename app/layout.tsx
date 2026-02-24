@@ -9,7 +9,7 @@ const _geistMono = Geist_Mono({ subsets: ["latin"] });
 export const metadata: Metadata = {
   title: 'Food Delivery App',
   description: 'A modern food delivery application',
-  generator: 'v0.app',
+  // generator: 'v0.app',
   manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
@@ -30,31 +30,31 @@ export const metadata: Metadata = {
     title: 'Food Delivery App',
     description: 'A modern food delivery application',
   },
-  icons: {
-    icon: [
-      {
-        url: '/icons/icon-192x192.png',
-        sizes: '192x192',
-        type: 'image/png',
-      },
-      {
-        url: '/icons/icon-512x512.png',
-        sizes: '512x512',
-        type: 'image/png',
-      },
-      {
-        url: '/icon.svg',
-        type: 'image/svg+xml',
-      },
-    ],
-    apple: [
-      {
-        url: '/icons/icon-152x152.png',
-        sizes: '152x152',
-        type: 'image/png',
-      },
-    ],
-  },
+  // icons: {
+  //   icon: [
+  //     {
+  //       url: '/icons/icon-192x192.png',
+  //       sizes: '192x192',
+  //       type: 'image/png',
+  //     },
+  //     {
+  //       url: '/icons/icon-512x512.png',
+  //       sizes: '512x512',
+  //       type: 'image/png',
+  //     },
+  //     {
+  //       url: '/icon.svg',
+  //       type: 'image/svg+xml',
+  //     },
+  //   ],
+  //   apple: [
+  //     {
+  //       url: '/icons/icon-152x152.png',
+  //       sizes: '152x152',
+  //       type: 'image/png',
+  //     },
+  //   ],
+  // },
 }
 
 export const viewport: Viewport = {

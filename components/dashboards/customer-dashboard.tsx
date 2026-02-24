@@ -17,7 +17,6 @@ import {
   Package,
   LogOut,
   Search,
-  Filter,
   ArrowLeft,
   Heart,
   Plus,
@@ -63,11 +62,26 @@ export function CustomerDashboard() {
   const [selectedRestaurant, setSelectedRestaurant] = useState<Restaurant | null>(null)
   const [menuItems, setMenuItems] = useState<Product[]>([])
   const [showCart, setShowCart] = useState(false)
-  const [showCheckout, setShowCheckout] = useState(false)
+  const [checkoutStep, setCheckoutStep] = useState(0) // 0=cart,1=address,2=payment,3=confirm
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedCuisine, setSelectedCuisine] = useState("All")
+  const [vegFilter, setVegFilter] = useState<"all" | "veg" | "nonveg">("all")
   const [toast, setToast] = useState<string | null>(null)
-  const [deliveryAddress] = useState("123 Main St, Apt 4B, New York, NY 10001")
+  const [showUserMenu, setShowUserMenu] = useState(false)
+
+  const DUMMY_ADDRESSES = [
+    "123 R G Road, Apt 4B, Surat, GJ 395001",
+    "45 Adajan Patiya, Flat 302, Surat, GJ 395009",
+    "7 Vesu Main Road, Bungalow 12, Surat, GJ 395007",
+  ]
+  const DUMMY_PAYMENTS = [
+    { id: "visa", label: "Visa ending in 4242", icon: "💳", type: "Card" },
+    { id: "master", label: "Mastercard ending in 5353", icon: "💳", type: "Card" },
+    { id: "upi", label: "UPI — hreva@okaxis", icon: "📱", type: "UPI" },
+    { id: "cod", label: "Cash on Delivery", icon: "💵", type: "Cash" },
+  ]
+  const [selectedAddress, setSelectedAddress] = useState(DUMMY_ADDRESSES[0])
+  const [selectedPayment, setSelectedPayment] = useState(DUMMY_PAYMENTS[0].id)
 
   useEffect(() => {
     refreshData()
@@ -91,6 +105,12 @@ export function CustomerDashboard() {
       r.cuisine.toLowerCase().includes(searchQuery.toLowerCase())
     const matchCuisine = selectedCuisine === "All" || r.cuisine === selectedCuisine
     return matchSearch && matchCuisine
+  })
+
+  const filteredMenuItems = menuItems.filter((item) => {
+    if (vegFilter === "veg") return item.isVeg
+    if (vegFilter === "nonveg") return !item.isVeg
+    return true
   })
 
   const handleRestaurantClick = (restaurant: Restaurant) => {
@@ -126,11 +146,12 @@ export function CustomerDashboard() {
     if (cart.length === 0) return
     const restaurantId = cart[0].restaurantId
     const restaurant = restaurants.find((r) => r.id === restaurantId)
+    const paymentLabel = DUMMY_PAYMENTS.find(p => p.id === selectedPayment)?.label ?? selectedPayment
     const order: Order = {
       id: generateOrderId(),
       customerId: user?.id ?? "",
       customerName: user?.name ?? "",
-      customerPhone: "+1 234-567-8900",
+      customerPhone: "+91 98765 43210",
       restaurantId,
       restaurantName: restaurant?.name ?? "",
       driverId: null,
@@ -143,19 +164,19 @@ export function CustomerDashboard() {
       })),
       status: "placed",
       total: getCartTotal(),
-      deliveryAddress,
-      paymentMethod: "Visa ending in 4242",
+      deliveryAddress: selectedAddress,
+      paymentMethod: paymentLabel,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     }
     addOrder(order)
     clearCart()
     setCart([])
-    setShowCheckout(false)
+    setCheckoutStep(0)
     setShowCart(false)
     setActiveTab("orders")
     refreshData()
-    showToast("Order placed successfully!")
+    showToast("Order placed successfully! 🎉")
   }
 
   const activeOrders = orders.filter((o) => o.status !== "delivered" && o.status !== "rejected")
@@ -176,17 +197,44 @@ export function CustomerDashboard() {
       {/* Header */}
       <header className="bg-white shadow-sm border-b sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center min-w-0">
-              <ShoppingCart className="h-6 w-6 sm:h-8 sm:w-8 text-purple-600 mr-2 sm:mr-3 shrink-0" />
-              <div className="min-w-0">
-                <h1 className="text-base sm:text-xl font-bold text-gray-900">VioletEats</h1>
-                <p className="text-xs text-gray-500 flex items-center truncate"><MapPin className="h-3 w-3 mr-1 shrink-0" /><span className="truncate">{deliveryAddress.split(",")[0]}</span></p>
+          <div className="flex items-center h-16 gap-4">
+
+            {/* ── Left: Brand + Location ── */}
+            <div className="flex items-center gap-3 min-w-0">
+              {/* FoodHub brand */}
+              <div className="flex items-center gap-2 shrink-0">
+                <div className="w-8 h-8 bg-purple-600 rounded-xl flex items-center justify-center">
+                  <ShoppingCart className="h-4 w-4 text-white" />
+                </div>
+                <span className="text-xl font-extrabold text-purple-600 tracking-tight hidden sm:block">FoodHub</span>
+              </div>
+
+              {/* Divider */}
+              <div className="hidden sm:block w-px h-7 bg-gray-200" />
+
+              {/* Delivery location */}
+              <div className="flex items-start gap-1.5 cursor-pointer group min-w-0">
+                <MapPin className="h-4 w-4 text-purple-500 mt-0.5 shrink-0" />
+                <div className="min-w-0">
+                  <p className="text-[9px] text-gray-400 uppercase tracking-widest font-semibold leading-none">Deliver to</p>
+                  <p className="text-sm font-bold text-gray-900 flex items-center gap-0.5 truncate">
+                    {/* Show area + city, e.g. "Apt 4B, Surat" */}
+                    <span className="truncate">
+                      {selectedAddress.split(",").slice(1, 3).map(s => s.trim()).join(", ")}
+                    </span>
+                    <svg className="h-3 w-3 text-gray-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </p>
+                </div>
               </div>
             </div>
-            <div className="flex items-center space-x-2 sm:space-x-3">
+
+            {/* ── Right: Cart + Avatar dropdown ── */}
+            <div className="ml-auto flex items-center gap-2">
+              {/* Cart button */}
               <button
-                onClick={() => { setShowCart(!showCart); setShowCheckout(false) }}
+                onClick={() => { setShowCart(!showCart); setCheckoutStep(0) }}
                 className="relative p-2 rounded-full hover:bg-gray-100 transition"
               >
                 <ShoppingCart className="h-5 w-5 sm:h-6 sm:w-6 text-gray-700" />
@@ -196,115 +244,128 @@ export function CustomerDashboard() {
                   </span>
                 )}
               </button>
-              <Avatar className="h-8 w-8 hidden sm:flex">
-                <AvatarFallback className="bg-purple-100 text-purple-700">{user?.name?.charAt(0)}</AvatarFallback>
-              </Avatar>
-              <Button variant="outline" size="sm" onClick={logout} className="px-2 sm:px-3">
-                <LogOut className="h-4 w-4 sm:mr-2" />
-                <span className="hidden sm:inline">Logout</span>
-              </Button>
+
+              {/* Avatar dropdown */}
+              <div className="relative">
+                <button
+                  onClick={() => setShowUserMenu(!showUserMenu)}
+                  className="flex items-center gap-2 pl-1 pr-3 py-1 rounded-full hover:bg-gray-100 transition border border-transparent hover:border-gray-200"
+                >
+                  <div className="w-8 h-8 rounded-full bg-purple-600 flex items-center justify-center text-white text-sm font-bold">
+                    {user?.name?.charAt(0)?.toUpperCase()}
+                  </div>
+                  <span className="hidden sm:block text-sm font-medium text-gray-700 max-w-[90px] truncate">{user?.name?.split(" ")[0]}</span>
+                  <svg className="h-3.5 w-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+
+                {/* Dropdown panel */}
+                {showUserMenu && (
+                  <>
+                    {/* Click-outside backdrop */}
+                    <div className="fixed inset-0 z-40" onClick={() => setShowUserMenu(false)} />
+                    <div className="absolute right-0 top-full mt-2 w-52 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden z-50">
+                      {/* User info */}
+                      <div className="px-4 py-3 border-b bg-gray-50">
+                        <p className="text-sm font-bold text-gray-900 truncate">{user?.name}</p>
+                        <p className="text-xs text-gray-500 truncate">{user?.email}</p>
+                      </div>
+                      {/* Menu items */}
+                      {[
+                        { icon: <Search className="h-4 w-4" />, label: "Browse", action: () => { setActiveTab("browse"); setSelectedRestaurant(null); setShowUserMenu(false) } },
+                        { icon: <Package className="h-4 w-4" />, label: "My Orders", action: () => { setActiveTab("orders"); setSelectedRestaurant(null); setShowUserMenu(false) } },
+                        { icon: <User className="h-4 w-4" />, label: "Profile", action: () => { setActiveTab("profile"); setSelectedRestaurant(null); setShowUserMenu(false) } },
+                      ].map((item) => (
+                        <button
+                          key={item.label}
+                          onClick={item.action}
+                          className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-purple-50 hover:text-purple-700 transition text-left"
+                        >
+                          <span className="text-gray-400">{item.icon}</span>
+                          {item.label}
+                        </button>
+                      ))}
+                      <div className="border-t" />
+                      <button
+                        onClick={() => { setShowUserMenu(false); logout() }}
+                        className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition text-left"
+                      >
+                        <LogOut className="h-4 w-4" />
+                        Logout
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
             </div>
           </div>
         </div>
       </header>
 
       <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6">
-        {/* Navigation Tabs */}
-        {!selectedRestaurant && (
-          <div className="mb-6">
-            <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg w-fit overflow-x-auto">
-              <Button
-                variant={activeTab === "browse" ? "default" : "ghost"}
-                onClick={() => setActiveTab("browse")}
-                className="flex items-center gap-2"
-              >
-                <Search className="h-4 w-4" />
-                Browse
-              </Button>
-              <Button
-                variant={activeTab === "orders" ? "default" : "ghost"}
-                onClick={() => setActiveTab("orders")}
-                className="flex items-center gap-2"
-              >
-                <Package className="h-4 w-4" />
-                My Orders
-              </Button>
-              <Button
-                variant={activeTab === "profile" ? "default" : "ghost"}
-                onClick={() => setActiveTab("profile")}
-                className="flex items-center gap-2"
-              >
-                <User className="h-4 w-4" />
-                Profile
-              </Button>
-            </div>
-          </div>
-        )}
+
 
         {/* ─── Cart Sidebar ─── */}
         {showCart && (
           <div className="fixed inset-0 z-50 flex justify-end">
-            <div className="absolute inset-0 bg-black/30" onClick={() => { setShowCart(false); setShowCheckout(false) }} />
-            <div className="relative w-full max-w-md bg-white shadow-xl h-full overflow-y-auto">
-              <div className="p-6">
-                <div className="flex justify-between items-center mb-6">
-                  <h3 className="text-xl font-bold">Your Cart</h3>
-                  <button onClick={() => { setShowCart(false); setShowCheckout(false) }}>
-                    <X className="h-6 w-6" />
-                  </button>
+            <div className="absolute inset-0 bg-black/30" onClick={() => { setShowCart(false); setCheckoutStep(0) }} />
+            <div className="relative w-full max-w-md bg-white shadow-xl h-full flex flex-col">
+
+              {/* ── Step indicator (steps 1-3) ── */}
+              {checkoutStep > 0 && (
+                <div className="px-6 pt-5 pb-3 border-b flex items-center gap-2">
+                  {["Address", "Payment", "Confirm"].map((label, i) => {
+                    const step = i + 1
+                    const done = checkoutStep > step
+                    const active = checkoutStep === step
+                    return (
+                      <div key={label} className="flex items-center gap-1 flex-1">
+                        <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${done ? "bg-purple-600 text-white" : active ? "bg-purple-600 text-white" : "bg-gray-200 text-gray-500"
+                          }`}>
+                          {done ? "✓" : step}
+                        </div>
+                        <span className={`text-xs font-medium truncate ${active ? "text-purple-700" : done ? "text-purple-500" : "text-gray-400"
+                          }`}>{label}</span>
+                        {i < 2 && <div className="flex-1 h-px bg-gray-200 mx-1" />}
+                      </div>
+                    )
+                  })}
                 </div>
+              )}
+
+              {/* ── Header ── */}
+              <div className="px-6 pt-5 pb-2 flex justify-between items-center">
+                <div className="flex items-center gap-2">
+                  {checkoutStep > 0 && (
+                    <button onClick={() => setCheckoutStep(s => s - 1)} className="p-1 rounded-full hover:bg-gray-100 transition">
+                      <ArrowLeft className="h-5 w-5 text-gray-600" />
+                    </button>
+                  )}
+                  <h3 className="text-xl font-bold">
+                    {checkoutStep === 0 ? "Your Cart" : checkoutStep === 1 ? "Delivery Address" : checkoutStep === 2 ? "Payment Method" : "Confirm Order"}
+                  </h3>
+                </div>
+                <button onClick={() => { setShowCart(false); setCheckoutStep(0) }}>
+                  <X className="h-6 w-6" />
+                </button>
+              </div>
+
+              {/* ── Content ── */}
+              <div className="flex-1 overflow-y-auto px-6 pb-6">
 
                 {cart.length === 0 ? (
                   <p className="text-gray-500 text-center py-12">Your cart is empty</p>
-                ) : showCheckout ? (
-                  /* Checkout */
-                  <div className="space-y-6">
-                    <div>
-                      <h4 className="font-semibold mb-2">Delivery Address</h4>
-                      <div className="flex items-center p-3 border rounded-lg bg-gray-50">
-                        <MapPin className="h-4 w-4 mr-2 text-gray-500" />
-                        <span className="text-sm">{deliveryAddress}</span>
-                      </div>
-                    </div>
-                    <div>
-                      <h4 className="font-semibold mb-2">Payment Method</h4>
-                      <div className="flex items-center p-3 border rounded-lg bg-gray-50">
-                        <CreditCard className="h-4 w-4 mr-2 text-gray-500" />
-                        <span className="text-sm">Visa ending in 4242</span>
-                      </div>
-                    </div>
-                    <Separator />
-                    <div>
-                      <h4 className="font-semibold mb-2">Order Summary</h4>
-                      {cart.map((item) => (
-                        <div key={item.productId} className="flex justify-between text-sm py-1">
-                          <span>{item.quantity}x {item.name}</span>
-                          <span>${(item.price * item.quantity).toFixed(2)}</span>
-                        </div>
-                      ))}
-                      <Separator className="my-2" />
-                      <div className="flex justify-between font-bold text-lg">
-                        <span>Total</span>
-                        <span>${getCartTotal().toFixed(2)}</span>
-                      </div>
-                    </div>
-                    <Button className="w-full bg-purple-600 hover:bg-purple-700" onClick={handlePlaceOrder}>
-                      Confirm & Place Order
-                    </Button>
-                    <Button variant="outline" className="w-full" onClick={() => setShowCheckout(false)}>
-                      Back to Cart
-                    </Button>
-                  </div>
-                ) : (
-                  /* Cart Items */
+
+                ) : checkoutStep === 0 ? (
+                  /* ── Step 0: Cart Items ── */
                   <div>
-                    <div className="space-y-4">
+                    <div className="space-y-4 mt-2">
                       {cart.map((item) => (
                         <div key={item.productId} className="flex items-center gap-3 p-3 border rounded-lg">
-                          <img src={item.image} alt={item.name} className="w-16 h-16 rounded-lg object-cover" />
                           <div className="flex-1">
                             <p className="font-medium">{item.name}</p>
-                            <p className="text-sm text-gray-600">${item.price.toFixed(2)}</p>
+                            <p className="text-sm text-gray-600">₹{item.price.toFixed(2)}</p>
                           </div>
                           <div className="flex items-center gap-2">
                             <button
@@ -328,12 +389,117 @@ export function CustomerDashboard() {
                       ))}
                     </div>
                     <Separator className="my-4" />
-                    <div className="flex justify-between items-center mb-4">
+                    <div className="flex justify-between items-center mb-5">
                       <span className="font-semibold text-lg">Total</span>
-                      <span className="font-bold text-xl">${getCartTotal().toFixed(2)}</span>
+                      <span className="font-bold text-xl">₹{getCartTotal().toFixed(2)}</span>
                     </div>
-                    <Button className="w-full bg-purple-600 hover:bg-purple-700" onClick={() => setShowCheckout(true)}>
-                      Proceed to Checkout
+                    <Button className="w-full bg-purple-600 hover:bg-purple-700 h-11" onClick={() => setCheckoutStep(1)}>
+                      Continue →
+                    </Button>
+                  </div>
+
+                ) : checkoutStep === 1 ? (
+                  /* ── Step 1: Choose Delivery Address ── */
+                  <div className="mt-3 space-y-3">
+                    <p className="text-sm text-gray-500 mb-4">Select where you'd like your order delivered</p>
+                    {DUMMY_ADDRESSES.map((addr) => (
+                      <button
+                        key={addr}
+                        onClick={() => setSelectedAddress(addr)}
+                        className={`w-full text-left p-4 border-2 rounded-xl transition flex items-start gap-3 ${selectedAddress === addr
+                          ? "border-purple-600 bg-purple-50"
+                          : "border-gray-200 hover:border-purple-300 bg-white"
+                          }`}
+                      >
+                        <MapPin className={`h-4 w-4 mt-0.5 shrink-0 ${selectedAddress === addr ? "text-purple-600" : "text-gray-400"}`} />
+                        <span className={`text-sm font-medium leading-snug ${selectedAddress === addr ? "text-purple-900" : "text-gray-700"}`}>
+                          {addr}
+                        </span>
+                        {selectedAddress === addr && (
+                          <CheckCircle className="h-4 w-4 ml-auto shrink-0 text-purple-600" />
+                        )}
+                      </button>
+                    ))}
+                    <Separator className="my-4" />
+                    <Button className="w-full bg-purple-600 hover:bg-purple-700 h-11" onClick={() => setCheckoutStep(2)}>
+                      Continue →
+                    </Button>
+                  </div>
+
+                ) : checkoutStep === 2 ? (
+                  /* ── Step 2: Select Payment Method ── */
+                  <div className="mt-3 space-y-3">
+                    <p className="text-sm text-gray-500 mb-4">Choose how you'd like to pay</p>
+                    {DUMMY_PAYMENTS.map((pm) => (
+                      <button
+                        key={pm.id}
+                        onClick={() => setSelectedPayment(pm.id)}
+                        className={`w-full text-left p-4 border-2 rounded-xl transition flex items-center gap-3 ${selectedPayment === pm.id
+                          ? "border-purple-600 bg-purple-50"
+                          : "border-gray-200 hover:border-purple-300 bg-white"
+                          }`}
+                      >
+                        <span className="text-xl shrink-0">{pm.icon}</span>
+                        <div className="flex-1">
+                          <p className={`text-sm font-semibold ${selectedPayment === pm.id ? "text-purple-900" : "text-gray-800"}`}>
+                            {pm.label}
+                          </p>
+                          <p className="text-xs text-gray-400">{pm.type}</p>
+                        </div>
+                        {selectedPayment === pm.id && (
+                          <CheckCircle className="h-4 w-4 shrink-0 text-purple-600" />
+                        )}
+                      </button>
+                    ))}
+                    <Separator className="my-4" />
+                    <Button className="w-full bg-purple-600 hover:bg-purple-700 h-11" onClick={() => setCheckoutStep(3)}>
+                      Continue →
+                    </Button>
+                  </div>
+
+                ) : (
+                  /* ── Step 3: Confirm Order ── */
+                  <div className="mt-3 space-y-5">
+                    {/* Delivery address summary */}
+                    <div className="p-4 bg-gray-50 rounded-xl border">
+                      <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Delivering to</p>
+                      <div className="flex items-start gap-2">
+                        <MapPin className="h-4 w-4 text-purple-500 mt-0.5 shrink-0" />
+                        <p className="text-sm text-gray-800 font-medium">{selectedAddress}</p>
+                      </div>
+                    </div>
+
+                    {/* Payment summary */}
+                    <div className="p-4 bg-gray-50 rounded-xl border">
+                      <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Payment</p>
+                      <div className="flex items-center gap-2">
+                        <span className="text-base">{DUMMY_PAYMENTS.find(p => p.id === selectedPayment)?.icon}</span>
+                        <p className="text-sm text-gray-800 font-medium">
+                          {DUMMY_PAYMENTS.find(p => p.id === selectedPayment)?.label}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Order items */}
+                    <div>
+                      <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Order Summary</p>
+                      <div className="space-y-1.5">
+                        {cart.map((item) => (
+                          <div key={item.productId} className="flex justify-between text-sm">
+                            <span className="text-gray-700">{item.quantity}× {item.name}</span>
+                            <span className="font-medium">₹{(item.price * item.quantity).toFixed(2)}</span>
+                          </div>
+                        ))}
+                      </div>
+                      <Separator className="my-3" />
+                      <div className="flex justify-between font-bold text-lg">
+                        <span>Total</span>
+                        <span>₹{getCartTotal().toFixed(2)}</span>
+                      </div>
+                    </div>
+
+                    <Button className="w-full bg-purple-600 hover:bg-purple-700 h-12 text-base font-bold" onClick={handlePlaceOrder}>
+                      Place Order ✓
                     </Button>
                   </div>
                 )}
@@ -381,7 +547,7 @@ export function CustomerDashboard() {
                       {selectedRestaurant.deliveryTime}
                     </span>
                     <Badge variant="outline">{selectedRestaurant.cuisine}</Badge>
-                    <span>{selectedRestaurant.priceRange}</span>
+
                   </div>
                 </div>
               </div>
@@ -389,17 +555,40 @@ export function CustomerDashboard() {
 
             {/* Menu */}
             <div className="mt-14">
-              <h3 className="text-xl font-bold mb-4">Menu</h3>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-xl font-bold">Menu</h3>
+                <div className="flex gap-2">
+                  {(["all", "veg", "nonveg"] as const).map((f) => (
+                    <button
+                      key={f}
+                      onClick={() => setVegFilter(f)}
+                      className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition ${vegFilter === f
+                        ? f === "veg"
+                          ? "bg-green-600 text-white border-green-600"
+                          : f === "nonveg"
+                            ? "bg-red-600 text-white border-red-600"
+                            : "bg-gray-800 text-white border-gray-800"
+                        : "bg-white text-gray-600 border-gray-300 hover:bg-gray-50"
+                        }`}
+                    >
+                      {f === "veg" ? "🟢 Veg" : f === "nonveg" ? "🔴 Non-Veg" : "All"}
+                    </button>
+                  ))}
+                </div>
+              </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {menuItems.map((item) => (
+                {filteredMenuItems.map((item) => (
                   <div
                     key={item.id}
                     className="flex items-center gap-4 p-4 border rounded-xl hover:shadow-md transition bg-white"
                   >
                     <img src={item.image} alt={item.name} className="w-20 h-20 rounded-lg object-cover" />
                     <div className="flex-1">
-                      <h4 className="font-semibold">{item.name}</h4>
-                      <p className="text-sm text-gray-500">{item.description}</p>
+                      <div className="flex items-center gap-2">
+                        <span className={`w-3 h-3 rounded-sm border-2 flex-shrink-0 ${item.isVeg ? "border-green-600 bg-green-100" : "border-red-600 bg-red-100"}`} title={item.isVeg ? "Veg" : "Non-Veg"} />
+                        <h4 className="font-semibold">{item.name}</h4>
+                      </div>
+                      <p className="text-sm text-gray-500 mt-0.5">{item.description}</p>
                       <div className="flex gap-1 mt-1">
                         {item.tags.map((tag) => (
                           <Badge
@@ -418,7 +607,7 @@ export function CustomerDashboard() {
                       </div>
                     </div>
                     <div className="text-right flex flex-col items-end gap-2">
-                      <span className="font-bold text-lg">${item.price.toFixed(2)}</span>
+                      <span className="font-bold text-lg">₹{item.price.toFixed(2)}</span>
                       <button
                         onClick={() => handleAddToCart(item)}
                         className="w-8 h-8 rounded-full bg-purple-600 text-white flex items-center justify-center hover:bg-purple-700 transition"
@@ -435,112 +624,231 @@ export function CustomerDashboard() {
           <>
             {/* ─── Browse Tab ─── */}
             {activeTab === "browse" && (
-              <div>
-                {/* Search */}
-                <div className="relative mb-6">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-                  <Input
-                    placeholder="Search restaurants or cuisines..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-10 h-12 rounded-xl"
-                  />
-                </div>
+              <div className="flex gap-6 items-start">
 
-                {/* Active Orders Banner */}
-                {activeOrders.length > 0 && (
-                  <div className="mb-6">
-                    <div className="flex items-center justify-between mb-3">
-                      <h3 className="font-bold text-lg">Active Orders</h3>
-                      <button onClick={() => setActiveTab("orders")} className="text-sm text-purple-600 hover:underline">
-                        View All
-                      </button>
+                {/* ── Left Sidebar Filter Panel ── */}
+                <aside className="hidden lg:flex flex-col gap-6 w-64 shrink-0 sticky top-24 self-start">
+                  {/* Search */}
+                  <div className="bg-white rounded-2xl shadow-sm border p-5">
+                    <h3 className="font-bold text-gray-800 mb-3 text-sm uppercase tracking-wide">Search</h3>
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                      <input
+                        type="text"
+                        placeholder="Restaurants, cuisines..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300 bg-gray-50"
+                      />
                     </div>
-                    <div className="flex gap-4 overflow-x-auto pb-2">
-                      {activeOrders.slice(0, 3).map((order) => (
-                        <div
-                          key={order.id}
-                          className="min-w-[280px] bg-gradient-to-r from-purple-600 to-purple-500 text-white rounded-xl p-4 cursor-pointer hover:shadow-lg transition"
-                          onClick={() => setActiveTab("orders")}
+                  </div>
+
+                  {/* Food Type */}
+                  <div className="bg-white rounded-2xl shadow-sm border p-5">
+                    <h3 className="font-bold text-gray-800 mb-3 text-sm uppercase tracking-wide">Food Type</h3>
+                    <div className="flex flex-col gap-2">
+                      {([
+                        { key: "all", label: "All Items", icon: "🍽️", active: "bg-gray-900 text-white border-gray-900" },
+                        { key: "veg", label: "Veg Only", icon: "🟢", active: "bg-green-600 text-white border-green-600" },
+                        { key: "nonveg", label: "Non-Veg", icon: "🔴", active: "bg-red-600 text-white border-red-600" },
+                      ] as const).map((f) => (
+                        <button
+                          key={f.key}
+                          onClick={() => setVegFilter(f.key)}
+                          className={`flex items-center gap-2.5 px-4 py-2.5 rounded-xl text-sm font-semibold border transition-all ${vegFilter === f.key ? f.active : "bg-gray-50 text-gray-600 border-gray-200 hover:bg-purple-50 hover:border-purple-200 hover:text-purple-700"
+                            }`}
                         >
-                          <div className="flex justify-between items-start mb-2">
-                            <span className="text-sm opacity-80">{order.id}</span>
-                            <Badge className="bg-white/20 text-white border-0 capitalize">
-                              {order.status}
-                            </Badge>
-                          </div>
-                          <p className="font-semibold">{order.restaurantName}</p>
-                          <p className="text-sm opacity-80 flex items-center mt-1">
-                            <Clock className="h-3 w-3 mr-1" />
-                            {order.status === "picked" ? "Arriving in 10-15 min" : "Arriving in 25-35 min"}
-                          </p>
-                        </div>
+                          <span className="text-base">{f.icon}</span>
+                          {f.label}
+                        </button>
                       ))}
                     </div>
                   </div>
-                )}
 
-                {/* Cuisine Filters */}
-                <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
-                  {cuisines.map((c) => (
-                    <button
-                      key={c}
-                      onClick={() => setSelectedCuisine(c)}
-                      className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition ${selectedCuisine === c
-                        ? "bg-purple-600 text-white"
-                        : "bg-white border text-gray-700 hover:bg-gray-50"
-                        }`}
-                    >
-                      {c}
-                    </button>
-                  ))}
-                </div>
+                  {/* Cuisine */}
+                  <div className="bg-white rounded-2xl shadow-sm border p-5">
+                    <h3 className="font-bold text-gray-800 mb-3 text-sm uppercase tracking-wide">Cuisine</h3>
+                    <div className="flex flex-col gap-1">
+                      {cuisines.map((c) => {
+                        const cuisineIcons: Record<string, string> = {
+                          "All": "🍴", "North Indian": "🫕", "Gujarati": "🥘", "Gujarati Snacks": "🥨",
+                          "South Indian": "🥞", "Chinese": "🥡", "Beverages": "🥤", "Ice Cream": "🍦",
+                          "Street Food": "🌮", "Rajasthani": "🫙", "Sweets & Desserts": "🍮",
+                        }
+                        const icon = cuisineIcons[c] ?? "🍽️"
+                        const isActive = selectedCuisine === c
+                        return (
+                          <button
+                            key={c}
+                            onClick={() => setSelectedCuisine(c)}
+                            className={`flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-medium transition-all text-left ${isActive
+                              ? "bg-purple-600 text-white"
+                              : "text-gray-600 hover:bg-purple-50 hover:text-purple-700"
+                              }`}
+                          >
+                            <span>{icon}</span>
+                            <span className="truncate">{c}</span>
+                            {isActive && (
+                              <span className="ml-auto bg-white/20 text-white text-xs rounded-full px-1.5 py-0.5">
+                                {restaurants.filter(r => r.cuisine === c).length}
+                              </span>
+                            )}
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </div>
 
-                {/* Restaurant List */}
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="font-bold text-lg">All Restaurants</h3>
-                  <span className="text-sm text-gray-500">{filteredRestaurants.length} restaurants</span>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {filteredRestaurants.map((restaurant) => (
-                    <div
-                      key={restaurant.id}
-                      className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition cursor-pointer border"
-                      onClick={() => handleRestaurantClick(restaurant)}
-                    >
-                      <div className="relative">
-                        <img
-                          src={restaurant.image}
-                          alt={restaurant.name}
-                          className="w-full h-48 object-cover"
-                        />
-                        <div className="absolute top-3 left-3 bg-white/90 backdrop-blur text-xs font-medium px-3 py-1 rounded-full">
-                          {restaurant.deliveryTime}
-                        </div>
-                        <button
-                          className="absolute top-3 right-3 w-8 h-8 bg-white/90 backdrop-blur rounded-full flex items-center justify-center hover:bg-white transition"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <Heart className="h-4 w-4 text-gray-500" />
+
+                </aside>
+
+                {/* ── Main Content Area ── */}
+                <div className="flex-1 min-w-0">
+
+                  {/* Mobile search & filters (shown on small screens) */}
+                  <div className="lg:hidden mb-4 space-y-3">
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                      <input
+                        type="text"
+                        placeholder="Search restaurants or cuisines..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300"
+                      />
+                    </div>
+                    <div className="flex gap-2">
+                      {(["all", "veg", "nonveg"] as const).map((f) => (
+                        <button key={f} onClick={() => setVegFilter(f)}
+                          className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition ${vegFilter === f
+                            ? f === "veg" ? "bg-green-600 text-white border-green-600"
+                              : f === "nonveg" ? "bg-red-600 text-white border-red-600"
+                                : "bg-gray-800 text-white border-gray-800"
+                            : "bg-white text-gray-600 border-gray-300"}`}>
+                          {f === "veg" ? "🟢 Veg" : f === "nonveg" ? "🔴 Non-Veg" : "🍽️ All"}
+                        </button>
+                      ))}
+                    </div>
+                    <div className="flex gap-2 overflow-x-auto pb-1">
+                      {cuisines.map((c) => (
+                        <button key={c} onClick={() => setSelectedCuisine(c)}
+                          className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap border transition ${selectedCuisine === c ? "bg-purple-600 text-white border-purple-600" : "bg-white text-gray-600 border-gray-200"}`}>
+                          {c}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Active Orders Banner */}
+                  {activeOrders.length > 0 && (
+                    <div className="mb-6">
+                      <div className="flex items-center justify-between mb-3">
+                        <h3 className="font-bold text-lg flex items-center gap-2">
+                          <span className="w-2.5 h-2.5 bg-green-500 rounded-full animate-pulse inline-block" />
+                          Active Orders
+                        </h3>
+                        <button onClick={() => setActiveTab("orders")} className="text-sm text-purple-600 hover:underline font-medium">
+                          View All →
                         </button>
                       </div>
-                      <div className="p-4">
-                        <h4 className="font-bold text-lg">{restaurant.name}</h4>
-                        <p className="text-sm text-gray-500 mb-2">{restaurant.description}</p>
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <span className="flex items-center text-yellow-600 font-medium text-sm">
-                              <Star className="h-4 w-4 fill-current mr-1" />
-                              {restaurant.rating}
-                              <span className="text-gray-400 ml-1">({restaurant.reviewCount})</span>
-                            </span>
-                            <span className="text-gray-400">{restaurant.priceRange}</span>
+                      <div className="flex gap-4 overflow-x-auto pb-2">
+                        {activeOrders.slice(0, 3).map((order) => (
+                          <div
+                            key={order.id}
+                            className="min-w-[260px] bg-gradient-to-br from-purple-700 to-indigo-600 text-white rounded-2xl p-4 cursor-pointer hover:shadow-xl hover:-translate-y-0.5 transition-all"
+                            onClick={() => setActiveTab("orders")}
+                          >
+                            <div className="flex justify-between items-start mb-2">
+                              <span className="text-xs opacity-70 font-mono">{order.id}</span>
+                              <Badge className="bg-white/20 text-white border-0 capitalize text-xs">{order.status}</Badge>
+                            </div>
+                            <p className="font-bold text-base">{order.restaurantName}</p>
+                            <p className="text-xs opacity-80 flex items-center mt-2 gap-1">
+                              <Clock className="h-3 w-3" />
+                              {order.status === "picked" ? "Arriving in 10–15 min" : "Arriving in 25–35 min"}
+                            </p>
                           </div>
-                          <Badge variant="outline" className="text-xs">{restaurant.cuisine}</Badge>
-                        </div>
+                        ))}
                       </div>
                     </div>
-                  ))}
+                  )}
+
+                  {/* Restaurant List Header */}
+                  <div className="flex items-center justify-between mb-4">
+                    <div>
+                      <h3 className="font-bold text-xl text-gray-900">
+                        {selectedCuisine === "All" ? "All Restaurants" : selectedCuisine}
+                      </h3>
+                      <p className="text-sm text-gray-500 mt-0.5">
+                        {filteredRestaurants.length} restaurant{filteredRestaurants.length !== 1 ? "s" : ""} available
+                      </p>
+                    </div>
+                    {(selectedCuisine !== "All" || vegFilter !== "all" || searchQuery) && (
+                      <button
+                        onClick={() => { setSelectedCuisine("All"); setVegFilter("all"); setSearchQuery("") }}
+                        className="text-sm text-purple-600 hover:text-purple-800 font-medium flex items-center gap-1 border border-purple-200 rounded-full px-3 py-1 hover:bg-purple-50 transition"
+                      >
+                        <X className="h-3 w-3" /> Clear filters
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Restaurant Grid */}
+                  {filteredRestaurants.length === 0 ? (
+                    <div className="text-center py-20 text-gray-400">
+                      <Search className="h-12 w-12 mx-auto mb-3 opacity-30" />
+                      <p className="font-medium">No restaurants found</p>
+                      <p className="text-sm">Try adjusting your filters</p>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
+                      {filteredRestaurants.map((restaurant) => (
+                        <div
+                          key={restaurant.id}
+                          className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-200 cursor-pointer border border-gray-100 group"
+                          onClick={() => handleRestaurantClick(restaurant)}
+                        >
+                          <div className="relative overflow-hidden">
+                            <img
+                              src={restaurant.image}
+                              alt={restaurant.name}
+                              className="w-full h-44 object-cover group-hover:scale-105 transition-transform duration-300"
+                            />
+                            {/* Gradient overlay */}
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                            <div className="absolute top-3 left-3 bg-white/95 backdrop-blur text-xs font-semibold px-3 py-1 rounded-full shadow-sm flex items-center gap-1">
+                              <Clock className="h-3 w-3 text-purple-600" />
+                              {restaurant.deliveryTime}
+                            </div>
+                            <button
+                              className="absolute top-3 right-3 w-8 h-8 bg-white/95 backdrop-blur rounded-full flex items-center justify-center hover:bg-red-50 hover:text-red-500 transition shadow-sm"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <Heart className="h-4 w-4 text-gray-400" />
+                            </button>
+                            <div className="absolute bottom-3 left-3">
+                              <Badge className="bg-purple-600 text-white text-xs border-0 shadow">{restaurant.cuisine}</Badge>
+                            </div>
+                          </div>
+                          <div className="p-4">
+                            <div className="flex justify-between items-start mb-1">
+                              <h4 className="font-bold text-base text-gray-900 leading-tight">{restaurant.name}</h4>
+                              <span className="text-xs text-gray-400 font-medium ml-2 shrink-0">{restaurant.priceRange}</span>
+                            </div>
+                            <p className="text-xs text-gray-500 mb-3 line-clamp-2">{restaurant.description}</p>
+                            <div className="flex items-center justify-between">
+                              <span className="flex items-center text-amber-500 font-bold text-sm">
+                                <Star className="h-4 w-4 fill-current mr-1" />
+                                {restaurant.rating}
+                                <span className="text-gray-400 font-normal ml-1 text-xs">({restaurant.reviewCount})</span>
+                              </span>
+                              <span className="text-xs text-purple-600 font-semibold group-hover:underline">View Menu →</span>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             )}
@@ -588,7 +896,7 @@ export function CustomerDashboard() {
                               </p>
                             </div>
                             <div className="text-right">
-                              <p className="text-lg font-semibold">${order.total.toFixed(2)}</p>
+                              <p className="text-lg font-semibold">₹{order.total.toFixed(2)}</p>
                             </div>
                           </div>
 

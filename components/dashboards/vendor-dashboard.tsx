@@ -26,6 +26,8 @@ import {
   Trash2,
   X,
   Heart,
+  MapPin,
+  User,
 } from "lucide-react"
 import { useAuth } from "../../contexts/auth-context"
 import {
@@ -52,6 +54,7 @@ export function VendorDashboard() {
   const [editingItem, setEditingItem] = useState<Product | null>(null)
   const [formData, setFormData] = useState({ name: "", description: "", price: "", category: "", tags: "" })
   const [toast, setToast] = useState<string | null>(null)
+  const [showUserMenu, setShowUserMenu] = useState(false)
 
   // Simulated weekly revenue data
   const weeklyRevenue = [
@@ -159,6 +162,7 @@ export function VendorDashboard() {
         category: formData.category,
         image: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=200&h=200&fit=crop",
         isAvailable: true,
+        isVeg: false,
         tags: formData.tags.split(",").map((t) => t.trim()).filter(Boolean),
       })
       showToastMsg("Menu item added!")
@@ -239,7 +243,7 @@ export function VendorDashboard() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label>Price ($)</Label>
+                  <Label>Price (₹)</Label>
                   <Input type="number" step="0.01" value={formData.price} onChange={(e) => setFormData({ ...formData, price: e.target.value })} placeholder="0.00" />
                 </div>
                 <div>
@@ -260,27 +264,86 @@ export function VendorDashboard() {
       )}
 
       {/* Header */}
-      <header className="bg-white shadow-sm border-b">
+      <header className="bg-white shadow-sm border-b sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center min-w-0">
-              <Store className="h-6 w-6 sm:h-8 sm:w-8 text-orange-500 mr-2 sm:mr-3 shrink-0" />
-              <div className="min-w-0">
-                <h1 className="text-base sm:text-xl font-bold text-gray-900 truncate">{user?.name}</h1>
-                <p className="text-xs sm:text-sm text-gray-500">Vendor Dashboard</p>
+          <div className="flex items-center h-16 gap-4">
+
+            {/* Left: FoodHub brand + Restaurant name */}
+            <div className="flex items-center gap-3 min-w-0">
+              {/* FoodHub brand */}
+              <div className="flex items-center gap-2 shrink-0">
+                <div className="w-8 h-8 bg-purple-600 rounded-xl flex items-center justify-center">
+                  <Store className="h-4 w-4 text-white" />
+                </div>
+                <span className="text-xl font-extrabold text-purple-600 tracking-tight hidden sm:block">FoodHub</span>
+              </div>
+
+              {/* Divider */}
+              <div className="hidden sm:block w-px h-7 bg-gray-200" />
+
+              {/* Restaurant info (Zomato/Swiggy partner style) */}
+              <div className="flex items-start gap-1.5 min-w-0">
+                <Store className="h-4 w-4 text-purple-500 mt-0.5 shrink-0" />
+                <div className="min-w-0">
+                  <p className="text-[9px] text-gray-400 uppercase tracking-widest font-semibold leading-none">Partner Restaurant</p>
+                  <p className="text-sm font-bold text-gray-900 truncate">
+                    {restaurants[0]?.name ?? user?.name}
+                  </p>
+                </div>
               </div>
             </div>
-            <div className="flex items-center space-x-2 sm:space-x-4">
-              <div className="hidden sm:flex items-center space-x-2">
-                <Avatar className="h-8 w-8">
-                  <AvatarFallback>{user?.name?.charAt(0)}</AvatarFallback>
-                </Avatar>
-                <span className="text-sm font-medium">{user?.name}</span>
+
+            {/* Right: Avatar dropdown */}
+            <div className="ml-auto flex items-center gap-2">
+              <div className="relative">
+                <button
+                  onClick={() => setShowUserMenu(!showUserMenu)}
+                  className="flex items-center gap-2 pl-1 pr-3 py-1 rounded-full hover:bg-gray-100 transition border border-transparent hover:border-gray-200"
+                >
+                  <div className="w-8 h-8 rounded-full bg-purple-600 flex items-center justify-center text-white text-sm font-bold">
+                    {user?.name?.charAt(0)?.toUpperCase()}
+                  </div>
+                  <span className="hidden sm:block text-sm font-medium text-gray-700 max-w-[90px] truncate">{user?.name?.split(" ")[0]}</span>
+                  <svg className="h-3.5 w-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+
+                {showUserMenu && (
+                  <>
+                    <div className="fixed inset-0 z-40" onClick={() => setShowUserMenu(false)} />
+                    <div className="absolute right-0 top-full mt-2 w-52 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden z-50">
+                      <div className="px-4 py-3 border-b bg-gray-50">
+                        <p className="text-sm font-bold text-gray-900 truncate">{user?.name}</p>
+                        <p className="text-xs text-gray-500 truncate">{user?.email}</p>
+                      </div>
+                      {[
+                        { icon: <ShoppingCart className="h-4 w-4" />, label: "Orders", tab: "orders" },
+                        { icon: <Package className="h-4 w-4" />, label: "Menu", tab: "menu" },
+                        { icon: <TrendingUp className="h-4 w-4" />, label: "Analytics", tab: "analytics" },
+                        { icon: <Store className="h-4 w-4" />, label: "Store", tab: "profile" },
+                      ].map((item) => (
+                        <button
+                          key={item.label}
+                          onClick={() => { setActiveTab(item.tab); setShowUserMenu(false) }}
+                          className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-purple-50 hover:text-purple-700 transition text-left"
+                        >
+                          <span className="text-gray-400">{item.icon}</span>
+                          {item.label}
+                        </button>
+                      ))}
+                      <div className="border-t" />
+                      <button
+                        onClick={() => { setShowUserMenu(false); logout() }}
+                        className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition text-left"
+                      >
+                        <LogOut className="h-4 w-4" />
+                        Logout
+                      </button>
+                    </div>
+                  </>
+                )}
               </div>
-              <Button variant="outline" size="sm" onClick={logout} className="px-2 sm:px-3">
-                <LogOut className="h-4 w-4 sm:mr-2" />
-                <span className="hidden sm:inline">Logout</span>
-              </Button>
             </div>
           </div>
         </div>
@@ -295,7 +358,7 @@ export function VendorDashboard() {
                 <DollarSign className="h-8 w-8 text-green-600" />
                 <div className="ml-4">
                   <p className="text-sm font-medium text-gray-600">Revenue</p>
-                  <p className="text-2xl font-bold text-gray-900">${todayRevenue.toFixed(2)}</p>
+                  <p className="text-2xl font-bold text-gray-900">₹{todayRevenue.toFixed(2)}</p>
                 </div>
               </div>
             </CardContent>
@@ -319,7 +382,7 @@ export function VendorDashboard() {
                 <TrendingUp className="h-8 w-8 text-purple-600" />
                 <div className="ml-4">
                   <p className="text-sm font-medium text-gray-600">Avg Order Value</p>
-                  <p className="text-2xl font-bold text-gray-900">${avgOrderValue.toFixed(2)}</p>
+                  <p className="text-2xl font-bold text-gray-900">₹{avgOrderValue.toFixed(2)}</p>
                 </div>
               </div>
             </CardContent>
@@ -373,7 +436,7 @@ export function VendorDashboard() {
                           {restaurant.rating}
                           <span className="text-gray-400 ml-1">({restaurant.reviewCount})</span>
                         </span>
-                        <span className="text-gray-400">{restaurant.priceRange}</span>
+                        {/* <span className="text-gray-400">{restaurant.priceRange}</span> */}
                       </div>
                       <Badge variant="outline" className="text-xs">{restaurant.cuisine}</Badge>
                     </div>
@@ -384,39 +447,40 @@ export function VendorDashboard() {
           </div>
         )}
 
-        {/* Navigation Tabs */}
+        {/* Main Content */}
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-4 text-xs sm:text-sm">
-            <TabsTrigger value="orders" className="flex items-center gap-1 sm:gap-2">
+          <TabsList className="grid w-full grid-cols-4 text-xs sm:text-sm mb-6">
+            <TabsTrigger value="orders" className="flex items-center gap-2">
               <ShoppingCart className="h-4 w-4" />
               Orders
             </TabsTrigger>
-            <TabsTrigger value="menu" className="flex items-center gap-1 sm:gap-2">
+            <TabsTrigger value="menu" className="flex items-center gap-2">
               <Package className="h-4 w-4" />
               Menu
             </TabsTrigger>
-            <TabsTrigger value="analytics" className="flex items-center gap-1 sm:gap-2">
+            <TabsTrigger value="analytics" className="flex items-center gap-2">
               <TrendingUp className="h-4 w-4" />
               Analytics
             </TabsTrigger>
-            <TabsTrigger value="profile" className="flex items-center gap-1 sm:gap-2">
+            <TabsTrigger value="profile" className="flex items-center gap-2">
               <Store className="h-4 w-4" />
               Store
             </TabsTrigger>
           </TabsList>
 
+          {/* Orders Tab */}
           <TabsContent value="orders" className="mt-6">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold">Orders</h3>
-              <Badge variant="outline">{orders.filter((o) => !["delivered", "rejected"].includes(o.status)).length} active</Badge>
+              <div>
+                <h3 className="text-xl font-bold text-gray-900">Orders</h3>
+                <p className="text-sm text-gray-500">{orders.filter(o => !["delivered", "rejected"].includes(o.status)).length} active orders</p>
+              </div>
             </div>
             {orders.length === 0 ? (
-              <Card>
-                <CardContent className="p-12 text-center">
-                  <Package className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-                  <p className="text-gray-500">No orders yet</p>
-                </CardContent>
-              </Card>
+              <div className="text-center py-20 text-gray-400">
+                <Package className="h-12 w-12 mx-auto mb-3 opacity-30" />
+                <p className="font-medium">No orders yet</p>
+              </div>
             ) : (
               <div className="space-y-4">
                 {[...orders].reverse().map((order) => (
@@ -441,7 +505,7 @@ export function VendorDashboard() {
                           </p>
                         </div>
                         <div className="text-right">
-                          <p className="text-lg font-semibold">${order.total.toFixed(2)}</p>
+                          <p className="text-lg font-semibold">₹{order.total.toFixed(2)}</p>
                           <p className="text-sm text-gray-600">{order.customerPhone}</p>
                         </div>
                       </div>
@@ -473,51 +537,47 @@ export function VendorDashboard() {
             )}
           </TabsContent>
 
+          {/* Menu Tab */}
           <TabsContent value="menu" className="mt-6">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold">Menu Items</h3>
-              <Button onClick={openAddModal}>
+              <div>
+                <h3 className="text-xl font-bold text-gray-900">Menu Items</h3>
+                <p className="text-sm text-gray-500">{menuItems.length} items</p>
+              </div>
+              <Button onClick={openAddModal} className="bg-purple-600 hover:bg-purple-700">
                 <Plus className="h-4 w-4 mr-2" />
-                Add New Item
+                Add Item
               </Button>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
               {menuItems.map((item) => (
                 <Card key={item.id} className={!item.isAvailable ? "opacity-60" : ""}>
-                  <CardContent className="p-6">
+                  <CardContent className="p-5">
                     <div className="flex items-start gap-3">
-                      <img src={item.image} alt={item.name} className="w-16 h-16 rounded-lg object-cover" />
-                      <div className="flex-1">
+                      <img src={item.image} alt={item.name} className="w-16 h-16 rounded-xl object-cover" />
+                      <div className="flex-1 min-w-0">
                         <div className="flex justify-between items-start">
-                          <div>
-                            <h4 className="font-semibold">{item.name}</h4>
-                            <p className="text-sm text-gray-600">{item.category}</p>
+                          <div className="min-w-0">
+                            <h4 className="font-semibold truncate">{item.name}</h4>
+                            <p className="text-xs text-gray-500">{item.category}</p>
                           </div>
-                          <Badge variant={item.isAvailable ? "default" : "secondary"}>
-                            {item.isAvailable ? "Available" : "Hidden"}
+                          <Badge variant={item.isAvailable ? "default" : "secondary"} className="ml-1 shrink-0 text-xs">
+                            {item.isAvailable ? "Live" : "Hidden"}
                           </Badge>
                         </div>
-                        <p className="text-xs text-gray-500 mt-1">{item.description}</p>
-                        {item.tags.length > 0 && (
-                          <div className="flex gap-1 mt-1">
-                            {item.tags.map((tag) => (
-                              <Badge key={tag} variant="outline" className="text-xs">{tag}</Badge>
-                            ))}
-                          </div>
-                        )}
+                        <p className="text-xs text-gray-400 mt-1 line-clamp-1">{item.description}</p>
                       </div>
                     </div>
                     <div className="flex justify-between items-center mt-4">
-                      <p className="text-lg font-semibold">${item.price.toFixed(2)}</p>
-                      <div className="flex gap-2">
-                        <Button variant="outline" size="sm" onClick={() => openEditModal(item)}>
-                          <Edit className="h-3 w-3 mr-1" />
-                          Edit
+                      <p className="text-base font-bold">₹{item.price.toFixed(2)}</p>
+                      <div className="flex gap-1.5">
+                        <Button variant="outline" size="sm" onClick={() => openEditModal(item)} className="h-8 px-2">
+                          <Edit className="h-3 w-3" />
                         </Button>
-                        <Button variant="outline" size="sm" onClick={() => handleToggleAvailability(item)}>
+                        <Button variant="outline" size="sm" onClick={() => handleToggleAvailability(item)} className="h-8 px-2 text-xs">
                           {item.isAvailable ? "Hide" : "Show"}
                         </Button>
-                        <Button variant="outline" size="sm" onClick={() => handleDeleteItem(item.id)} className="text-red-600 hover:text-red-700">
+                        <Button variant="outline" size="sm" onClick={() => handleDeleteItem(item.id)} className="h-8 px-2 text-red-500">
                           <Trash2 className="h-3 w-3" />
                         </Button>
                       </div>
@@ -528,7 +588,9 @@ export function VendorDashboard() {
             </div>
           </TabsContent>
 
+          {/* Analytics Tab */}
           <TabsContent value="analytics" className="mt-6">
+            <h3 className="text-xl font-bold text-gray-900 mb-4">Analytics</h3>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <Card>
                 <CardHeader>
@@ -543,23 +605,19 @@ export function VendorDashboard() {
                         <div className="flex-1 mx-4">
                           <div className="w-full bg-gray-100 rounded-full h-2.5">
                             <div
-                              className="bg-gradient-to-r from-orange-400 to-orange-600 h-2.5 rounded-full"
+                              className="bg-gradient-to-r from-purple-500 to-purple-700 h-2.5 rounded-full"
                               style={{ width: `${(day.revenue / 2500) * 100}%` }}
                             />
                           </div>
                         </div>
-                        <span className="text-sm font-bold text-gray-900 w-24 text-right">
-                          ${day.revenue.toFixed(2)}
-                        </span>
+                        <span className="text-sm font-bold text-gray-900 w-24 text-right">₹{day.revenue.toFixed(2)}</span>
                       </div>
                     ))}
                   </div>
                   <Separator className="my-4" />
                   <div className="flex justify-between items-center">
                     <span className="text-sm font-medium text-gray-700">Weekly Total</span>
-                    <span className="text-lg font-bold text-gray-900">
-                      ${weeklyRevenue.reduce((s, d) => s + d.revenue, 0).toFixed(2)}
-                    </span>
+                    <span className="text-lg font-bold text-gray-900">₹{weeklyRevenue.reduce((s, d) => s + d.revenue, 0).toFixed(2)}</span>
                   </div>
                 </CardContent>
               </Card>
@@ -572,14 +630,13 @@ export function VendorDashboard() {
                 <CardContent>
                   <div className="space-y-4">
                     {topSellingItems.map((item, idx) => (
-                      <div key={item.name} className="flex items-center justify-between p-3 border rounded-lg">
+                      <div key={item.name} className="flex items-center justify-between p-3 border rounded-xl">
                         <div className="flex items-center gap-3">
                           <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${idx === 0 ? "bg-yellow-100 text-yellow-700" :
                             idx === 1 ? "bg-gray-100 text-gray-700" :
-                              idx === 2 ? "bg-orange-100 text-orange-700" :
-                                "bg-gray-50 text-gray-500"
+                              idx === 2 ? "bg-purple-100 text-purple-700" : "bg-gray-50 text-gray-500"
                             }`}>{idx + 1}</span>
-                          <span className="font-medium">{item.name}</span>
+                          <span className="font-medium text-sm">{item.name}</span>
                         </div>
                         <Badge variant="outline">{item.orders} orders</Badge>
                       </div>
@@ -590,19 +647,19 @@ export function VendorDashboard() {
             </div>
           </TabsContent>
 
+          {/* Store/Profile Tab */}
           <TabsContent value="profile" className="mt-6">
+            <h3 className="text-xl font-bold text-gray-900 mb-4">Store</h3>
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               <Card className="lg:col-span-1">
-                <CardHeader>
-                  <CardTitle>Store Information</CardTitle>
-                </CardHeader>
+                <CardHeader><CardTitle>Store Information</CardTitle></CardHeader>
                 <CardContent>
                   <div className="flex flex-col items-center text-center">
-                    <Avatar className="h-20 w-20 mb-4">
-                      <AvatarFallback className="text-2xl">{user?.name?.charAt(0)}</AvatarFallback>
-                    </Avatar>
+                    <div className="w-20 h-20 rounded-2xl bg-purple-100 flex items-center justify-center text-purple-700 text-3xl font-bold mb-4">
+                      {user?.name?.charAt(0)}
+                    </div>
                     <h3 className="font-semibold text-lg">{user?.name}</h3>
-                    <p className="text-gray-600">{user?.email}</p>
+                    <p className="text-gray-600 text-sm">{user?.email}</p>
                     <Badge variant="outline" className="mt-2">Vendor</Badge>
                   </div>
                 </CardContent>
@@ -610,9 +667,7 @@ export function VendorDashboard() {
 
               <div className="lg:col-span-2 space-y-6">
                 <Card>
-                  <CardHeader>
-                    <CardTitle>Store Details</CardTitle>
-                  </CardHeader>
+                  <CardHeader><CardTitle>Store Details</CardTitle></CardHeader>
                   <CardContent>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
@@ -625,20 +680,18 @@ export function VendorDashboard() {
                       </div>
                       <div>
                         <label className="text-sm font-medium text-gray-700">Phone</label>
-                        <p className="mt-1 text-sm text-gray-900">{restaurants[0]?.phone || "+1 234-567-8900"}</p>
+                        <p className="mt-1 text-sm text-gray-900">{restaurants[0]?.phone || "+91 234-567-8900"}</p>
                       </div>
                       <div>
                         <label className="text-sm font-medium text-gray-700">Address</label>
-                        <p className="mt-1 text-sm text-gray-900">{restaurants[0]?.address || "123 Restaurant St, NY 10001"}</p>
+                        <p className="mt-1 text-sm text-gray-900">{restaurants[0]?.address || "Ahmedabad, Gujarat"}</p>
                       </div>
                     </div>
                   </CardContent>
                 </Card>
 
                 <Card>
-                  <CardHeader>
-                    <CardTitle>Operating Hours</CardTitle>
-                  </CardHeader>
+                  <CardHeader><CardTitle>Operating Hours</CardTitle></CardHeader>
                   <CardContent>
                     <div className="space-y-2">
                       <div className="flex justify-between">
