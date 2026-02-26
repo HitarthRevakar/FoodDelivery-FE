@@ -10,12 +10,6 @@ export const metadata: Metadata = {
   title: 'Food Delivery App',
   description: 'A modern food delivery application',
   // generator: 'v0.app',
-  manifest: '/manifest.json',
-  appleWebApp: {
-    capable: true,
-    statusBarStyle: 'default',
-    title: 'Food Delivery',
-  },
   formatDetection: {
     telephone: false,
   },
