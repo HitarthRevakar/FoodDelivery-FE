@@ -153,14 +153,14 @@ export function AdminDashboard() {
     <div className="min-h-screen bg-gray-50 overflow-y-auto">
       {/* Toast */}
       {toast && (
-        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[100] bg-emerald-600 text-white px-4 sm:px-6 py-3 rounded-xl shadow-lg flex items-center gap-2 text-sm sm:text-base max-w-[90vw]">
+        <div className="fixed top-[calc(1rem+env(safe-area-inset-top,0px))] left-1/2 -translate-x-1/2 z-[100] bg-emerald-600 text-white px-4 sm:px-6 py-3 rounded-xl shadow-lg flex items-center gap-2 text-sm sm:text-base max-w-[90vw]">
           <CheckCircle className="h-5 w-5" />
           {toast}
         </div>
       )}
 
       {/* Header */}
-      <header className="bg-white shadow-sm border-b sticky top-0 z-50">
+      <header className="bg-white shadow-sm border-b sticky top-0 z-50 pt-[env(safe-area-inset-top,0px)]">
         <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
           <div className="flex items-center h-16 gap-4">
 
@@ -232,48 +232,48 @@ export function AdminDashboard() {
         {/* Stats Cards - Row 1 */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-6 mb-3 sm:mb-4">
           <Card>
-            <CardContent className="p-4 sm:p-6">
-              <div className="flex items-center">
+            <CardContent className="p-3 sm:p-6">
+              <div className="flex items-center gap-2 sm:gap-4">
                 <Users className="h-6 w-6 sm:h-8 sm:w-8 text-blue-600 shrink-0" />
-                <div className="ml-3 sm:ml-4 min-w-0">
-                  <p className="text-xs sm:text-sm font-medium text-gray-600">Total Users</p>
-                  <p className="text-lg sm:text-2xl font-bold text-gray-900">{totalUsers.toLocaleString()}</p>
+                <div className="min-w-0 flex-1">
+                  <p className="text-[11px] sm:text-sm font-medium text-gray-600 truncate">Total Users</p>
+                  <p className="text-[15px] sm:text-2xl font-bold text-gray-900 tracking-tight break-all sm:break-normal">{totalUsers.toLocaleString()}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
           <Card>
-            <CardContent className="p-4 sm:p-6">
-              <div className="flex items-center">
+            <CardContent className="p-3 sm:p-6">
+              <div className="flex items-center gap-2 sm:gap-4">
                 <Store className="h-6 w-6 sm:h-8 sm:w-8 text-green-600 shrink-0" />
-                <div className="ml-3 sm:ml-4 min-w-0">
-                  <p className="text-xs sm:text-sm font-medium text-gray-600">Vendors</p>
-                  <p className="text-lg sm:text-2xl font-bold text-gray-900">{vendorCount}</p>
+                <div className="min-w-0 flex-1">
+                  <p className="text-[11px] sm:text-sm font-medium text-gray-600 truncate">Vendors</p>
+                  <p className="text-[15px] sm:text-2xl font-bold text-gray-900 tracking-tight break-all sm:break-normal">{vendorCount}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
           <Card>
-            <CardContent className="p-4 sm:p-6">
-              <div className="flex items-center">
+            <CardContent className="p-3 sm:p-6">
+              <div className="flex items-center gap-2 sm:gap-4">
                 <Truck className="h-6 w-6 sm:h-8 sm:w-8 text-purple-600 shrink-0" />
-                <div className="ml-3 sm:ml-4 min-w-0">
-                  <p className="text-xs sm:text-sm font-medium text-gray-600">Drivers</p>
-                  <p className="text-lg sm:text-2xl font-bold text-gray-900">{driverCount}</p>
+                <div className="min-w-0 flex-1">
+                  <p className="text-[11px] sm:text-sm font-medium text-gray-600 truncate">Drivers</p>
+                  <p className="text-[15px] sm:text-2xl font-bold text-gray-900 tracking-tight break-all sm:break-normal">{driverCount}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
           <Card>
-            <CardContent className="p-4 sm:p-6">
-              <div className="flex items-center">
+            <CardContent className="p-3 sm:p-6">
+              <div className="flex items-center gap-2 sm:gap-4">
                 <Package className="h-6 w-6 sm:h-8 sm:w-8 text-orange-600 shrink-0" />
-                <div className="ml-3 sm:ml-4 min-w-0">
-                  <p className="text-xs sm:text-sm font-medium text-gray-600">Total Orders</p>
-                  <p className="text-lg sm:text-2xl font-bold text-gray-900">{totalOrders > 0 ? totalOrders.toLocaleString() : "45,678"}</p>
+                <div className="min-w-0 flex-1">
+                  <p className="text-[11px] sm:text-sm font-medium text-gray-600 truncate">Total Orders</p>
+                  <p className="text-[15px] sm:text-2xl font-bold text-gray-900 tracking-tight break-all sm:break-normal">{totalOrders > 0 ? totalOrders.toLocaleString() : "45,678"}</p>
                 </div>
               </div>
             </CardContent>
@@ -283,36 +283,36 @@ export function AdminDashboard() {
         {/* Stats Cards - Row 2 */}
         <div className="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-6 mb-6 sm:mb-8">
           <Card>
-            <CardContent className="p-4 sm:p-6">
-              <div className="flex items-center">
+            <CardContent className="p-3 sm:p-6">
+              <div className="flex items-center gap-2 sm:gap-4">
                 <DollarSign className="h-6 w-6 sm:h-8 sm:w-8 text-emerald-600 shrink-0" />
-                <div className="ml-3 sm:ml-4 min-w-0">
-                  <p className="text-xs sm:text-sm font-medium text-gray-600">Today's Revenue</p>
-                  <p className="text-lg sm:text-2xl font-bold text-gray-900">₹{todayRevenue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                <div className="min-w-0 flex-1">
+                  <p className="text-[11px] sm:text-sm font-medium text-gray-600 truncate flex-1">Today's Revenue</p>
+                  <p className="text-[15px] sm:text-2xl font-bold text-gray-900 tracking-tight break-all sm:break-normal">₹{todayRevenue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
           <Card>
-            <CardContent className="p-4 sm:p-6">
-              <div className="flex items-center">
+            <CardContent className="p-3 sm:p-6">
+              <div className="flex items-center gap-2 sm:gap-4">
                 <TrendingUp className="h-6 w-6 sm:h-8 sm:w-8 text-indigo-600 shrink-0" />
-                <div className="ml-3 sm:ml-4 min-w-0">
-                  <p className="text-xs sm:text-sm font-medium text-gray-600">Monthly Revenue</p>
-                  <p className="text-lg sm:text-2xl font-bold text-gray-900">₹{monthlyRevenue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                <div className="min-w-0 flex-1">
+                  <p className="text-[11px] sm:text-sm font-medium text-gray-600 truncate flex-1">Monthly Revenue</p>
+                  <p className="text-[15px] sm:text-2xl font-bold text-gray-900 tracking-tight break-all sm:break-normal">₹{monthlyRevenue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
           <Card className="col-span-2 md:col-span-1">
-            <CardContent className="p-4 sm:p-6">
-              <div className="flex items-center">
+            <CardContent className="p-3 sm:p-6">
+              <div className="flex items-center gap-2 sm:gap-4">
                 <AlertCircle className="h-6 w-6 sm:h-8 sm:w-8 text-yellow-600 shrink-0" />
-                <div className="ml-3 sm:ml-4 min-w-0">
-                  <p className="text-xs sm:text-sm font-medium text-gray-600">Pending Approvals</p>
-                  <p className="text-lg sm:text-2xl font-bold text-gray-900">{pendingCount || 8}</p>
+                <div className="min-w-0 flex-1">
+                  <p className="text-[11px] sm:text-sm font-medium text-gray-600 truncate flex-1">Pending Approvals</p>
+                  <p className="text-[15px] sm:text-2xl font-bold text-gray-900 tracking-tight break-all sm:break-normal">{pendingCount || 8}</p>
                 </div>
               </div>
             </CardContent>
@@ -321,25 +321,25 @@ export function AdminDashboard() {
 
         {/* Navigation Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-5 text-xs sm:text-sm">
-            <TabsTrigger value="overview" className="flex items-center gap-1 sm:gap-2">
+          <TabsList className="flex w-full overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] justify-start sm:grid sm:grid-cols-5 text-xs sm:text-sm">
+            <TabsTrigger value="overview" className="flex items-center gap-1 sm:gap-2 whitespace-nowrap px-3 sm:px-4 shrink-0 sm:shrink">
               <BarChart3 className="h-4 w-4" />
               <span className="hidden sm:inline">Overview</span>
               <span className="sm:hidden">Stats</span>
             </TabsTrigger>
-            <TabsTrigger value="orders" className="flex items-center gap-1 sm:gap-2">
+            <TabsTrigger value="orders" className="flex items-center gap-1 sm:gap-2 whitespace-nowrap px-3 sm:px-4 shrink-0 sm:shrink">
               <Package className="h-4 w-4" />
               Orders
             </TabsTrigger>
-            <TabsTrigger value="users" className="flex items-center gap-1 sm:gap-2">
+            <TabsTrigger value="users" className="flex items-center gap-1 sm:gap-2 whitespace-nowrap px-3 sm:px-4 shrink-0 sm:shrink">
               <Users className="h-4 w-4" />
               Users
             </TabsTrigger>
-            <TabsTrigger value="vendors" className="flex items-center gap-1 sm:gap-2">
+            <TabsTrigger value="vendors" className="flex items-center gap-1 sm:gap-2 whitespace-nowrap px-3 sm:px-4 shrink-0 sm:shrink">
               <Store className="h-4 w-4" />
               Vendors
             </TabsTrigger>
-            <TabsTrigger value="settings" className="flex items-center gap-1 sm:gap-2">
+            <TabsTrigger value="settings" className="flex items-center gap-1 sm:gap-2 whitespace-nowrap px-3 sm:px-4 shrink-0 sm:shrink">
               <Settings className="h-4 w-4" />
               <span className="hidden sm:inline">Settings</span>
               <span className="sm:hidden">Config</span>
@@ -383,17 +383,22 @@ export function AdminDashboard() {
                   ) : (
                     <div className="space-y-4">
                       {[...orders].reverse().slice(0, 5).map((order) => (
-                        <div key={order.id} className="flex items-center justify-between p-3 border rounded-lg">
-                          <div>
-                            <p className="font-medium">Order #{order.id}</p>
-                            <p className="text-sm text-gray-600">
-                              {order.customerName} • {order.restaurantName}
+                        <div key={order.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 border rounded-xl gap-2 sm:gap-4 hover:bg-gray-50 transition-colors">
+                          <div className="min-w-0 flex-1 w-full">
+                            <div className="flex items-center justify-between sm:justify-start gap-2 mb-1">
+                              <p className="font-semibold text-gray-900 truncate">Order #{order.id}</p>
+                              <Badge className={`${getStatusColor(order.status)} sm:hidden text-[10px] py-0 h-5`} variant="secondary">
+                                {order.status}
+                              </Badge>
+                            </div>
+                            <p className="text-sm text-gray-600 truncate">
+                              <span className="font-medium">Customer:</span> {order.customerName} • <span className="font-medium">Restaurant:</span> {order.restaurantName}
                             </p>
-                            <p className="text-xs text-gray-500">{new Date(order.createdAt).toLocaleString()}</p>
+                            <p className="text-xs text-gray-500 truncate">{new Date(order.createdAt).toLocaleString()}</p>
                           </div>
-                          <div className="text-right">
-                            <p className="font-semibold">₹{order.total.toFixed(2)}</p>
-                            <Badge className={getStatusColor(order.status)} variant="secondary">
+                          <div className="w-full sm:w-auto flex flex-row sm:flex-col justify-between items-center sm:items-end mt-1 sm:mt-0 shrink-0 border-t sm:border-0 border-gray-100 pt-2 sm:pt-0">
+                            <p className="font-bold text-gray-900 border sm:border-none px-2 sm:px-0 py-1 sm:py-0 rounded-lg sm:rounded-none bg-white sm:bg-transparent">₹{order.total.toFixed(2)}</p>
+                            <Badge className={`${getStatusColor(order.status)} hidden sm:inline-flex mt-1`} variant="secondary">
                               {order.status}
                             </Badge>
                           </div>
@@ -424,27 +429,46 @@ export function AdminDashboard() {
                 {[...orders].reverse().map((order) => (
                   <Card key={order.id}>
                     <CardContent className="p-4 sm:p-6">
-                      <div className="flex flex-col sm:flex-row justify-between items-start mb-4 gap-2">
-                        <div>
-                          <div className="flex items-center gap-2 mb-2 flex-wrap">
-                            <h4 className="font-semibold">Order #{order.id}</h4>
+                      <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
+                        <div className="flex-1 min-w-0 w-full">
+                          <div className="flex items-center gap-2 mb-3 flex-wrap">
+                            <h4 className="font-bold text-gray-900">Order #{order.id}</h4>
                             <Badge className={getStatusColor(order.status)}>
                               {order.status}
                             </Badge>
                           </div>
-                          <p className="text-sm text-gray-600">
-                            Customer: {order.customerName} • Restaurant: {order.restaurantName}
-                          </p>
-                          <p className="text-sm text-gray-600">
-                            Driver: {order.driverName || "Not assigned"} • {new Date(order.createdAt).toLocaleString()}
-                          </p>
-                          <p className="text-sm text-gray-500 mt-1">
-                            Items: {order.items.map((i) => `${i.quantity}x ${i.name}`).join(", ")}
-                          </p>
+                          <div className="grid gap-1.5 sm:gap-1 text-sm text-gray-600">
+                            <p className="flex items-start sm:items-center gap-1.5 sm:gap-2">
+                              <span className="font-medium text-gray-900 min-w-[70px] sm:min-w-0">Customer:</span>
+                              <span className="truncate">{order.customerName}</span>
+                            </p>
+                            <p className="flex items-start sm:items-center gap-1.5 sm:gap-2">
+                              <span className="font-medium text-gray-900 min-w-[70px] sm:min-w-0">Restaurant:</span>
+                              <span className="truncate">{order.restaurantName}</span>
+                            </p>
+                            <p className="flex items-start sm:items-center gap-1.5 sm:gap-2">
+                              <span className="font-medium text-gray-900 min-w-[70px] sm:min-w-0">Driver:</span>
+                              <span className="truncate">{order.driverName || "Not assigned"}</span>
+                            </p>
+                            <p className="flex items-start sm:items-center gap-1.5 sm:gap-2">
+                              <span className="font-medium text-gray-900 min-w-[70px] sm:min-w-0">Date:</span>
+                              <span>{new Date(order.createdAt).toLocaleString()}</span>
+                            </p>
+                            <div className="pt-2 mt-2 border-t border-gray-100">
+                              <p className="text-sm text-gray-600 flex flex-col sm:flex-row sm:items-baseline gap-1 sm:gap-2">
+                                <span className="font-medium text-gray-900 shrink-0">Items:</span> 
+                                <span className="text-gray-500 leading-snug">{order.items.map((i) => `${i.quantity}x ${i.name}`).join(", ")}</span>
+                              </p>
+                            </div>
+                          </div>
                         </div>
-                        <div className="text-right">
-                          <p className="text-lg font-semibold">₹{order.total.toFixed(2)}</p>
-                          <p className="text-sm text-gray-500">Commission: ₹{(order.total * (settings?.commissionRate ?? 15) / 100).toFixed(2)}</p>
+                        <div className="w-full sm:w-auto bg-gray-50 sm:bg-transparent p-3 sm:p-0 rounded-xl sm:rounded-none flex flex-row sm:flex-col justify-between sm:justify-start items-center sm:items-end shrink-0 border sm:border-0 border-gray-100 mt-2 sm:mt-0">
+                          <div className="text-left sm:text-right">
+                            <p className="text-lg sm:text-xl font-bold text-gray-900">₹{order.total.toFixed(2)}</p>
+                            <p className="text-[13px] sm:text-sm font-medium text-emerald-600 sm:text-gray-500 mt-0.5">
+                              Commission: ₹{(order.total * (settings?.commissionRate ?? 15) / 100).toFixed(2)}
+                            </p>
+                          </div>
                         </div>
                       </div>
                     </CardContent>

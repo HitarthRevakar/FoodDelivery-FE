@@ -3,6 +3,13 @@
 
 @custom-variant dark (&:is(.dark *));
 
+@media (max-width: 640px) {
+  * {
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+  }
+}
+
 :root {
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
@@ -119,13 +126,16 @@
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground;
   }
 }
 
 /* ─── Scroll Fix ─── */
-html, body, body.antigravity-scroll-lock {
+html,
+body,
+body.antigravity-scroll-lock {
   overflow-x: hidden;
   overflow-y: auto !important;
   height: auto !important;
@@ -135,6 +145,7 @@ html, body, body.antigravity-scroll-lock {
 
 /* ─── Mobile Responsive Utilities ─── */
 @media (max-width: 640px) {
+
   /* Header compact on mobile */
   .mobile-header {
     padding-left: 0.75rem;
@@ -147,9 +158,11 @@ html, body, body.antigravity-scroll-lock {
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
   }
+
   [role="tablist"]::-webkit-scrollbar {
     display: none;
   }
+
   [role="tablist"] button {
     font-size: 0.75rem;
     padding: 0.5rem 0.625rem;

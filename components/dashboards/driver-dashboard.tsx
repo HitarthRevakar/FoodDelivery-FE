@@ -88,14 +88,14 @@ export function DriverDashboard() {
     <div className="min-h-screen bg-gray-50 overflow-y-auto">
       {/* Toast */}
       {toast && (
-        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[100] bg-emerald-600 text-white px-4 sm:px-6 py-3 rounded-xl shadow-lg flex items-center gap-2 text-sm sm:text-base max-w-[90vw]">
+        <div className="fixed top-[calc(1rem+env(safe-area-inset-top,0px))] left-1/2 -translate-x-1/2 z-[100] bg-emerald-600 text-white px-4 sm:px-6 py-3 rounded-xl shadow-lg flex items-center gap-2 text-sm sm:text-base max-w-[90vw]">
           <CheckCircle className="h-5 w-5" />
           {toast}
         </div>
       )}
 
       {/* Header */}
-      <header className="bg-white shadow-sm border-b sticky top-0 z-50">
+      <header className="bg-white shadow-sm border-b sticky top-0 z-50 pt-[env(safe-area-inset-top,0px)]">
         <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
           <div className="flex items-center h-16 gap-4">
 
@@ -217,20 +217,20 @@ export function DriverDashboard() {
 
         {/* Navigation Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-4 text-xs sm:text-sm">
-            <TabsTrigger value="available" className="flex items-center gap-2">
+          <TabsList className="flex w-full overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] justify-start sm:grid sm:grid-cols-4 text-xs sm:text-sm">
+            <TabsTrigger value="available" className="flex items-center gap-2 whitespace-nowrap px-3 sm:px-4 shrink-0 sm:shrink">
               <Package className="h-4 w-4" />
               Available
             </TabsTrigger>
-            <TabsTrigger value="active" className="flex items-center gap-2">
+            <TabsTrigger value="active" className="flex items-center gap-2 whitespace-nowrap px-3 sm:px-4 shrink-0 sm:shrink">
               <Truck className="h-4 w-4" />
               Active
             </TabsTrigger>
-            <TabsTrigger value="completed" className="flex items-center gap-2">
+            <TabsTrigger value="completed" className="flex items-center gap-2 whitespace-nowrap px-3 sm:px-4 shrink-0 sm:shrink">
               <CheckCircle className="h-4 w-4" />
               Completed
             </TabsTrigger>
-            <TabsTrigger value="profile" className="flex items-center gap-2">
+            <TabsTrigger value="profile" className="flex items-center gap-2 whitespace-nowrap px-3 sm:px-4 shrink-0 sm:shrink">
               <Truck className="h-4 w-4" />
               Profile
             </TabsTrigger>
@@ -253,30 +253,37 @@ export function DriverDashboard() {
               <div className="space-y-4">
                 {availableOrders.map((order) => (
                   <Card key={order.id}>
-                    <CardContent className="p-6">
-                      <div className="flex justify-between items-start mb-4">
-                        <div>
-                          <div className="flex items-center gap-2 mb-2">
-                            <h4 className="font-semibold">Order #{order.id}</h4>
+                    <CardContent className="p-4 sm:p-6">
+                      <div className="flex flex-col sm:flex-row justify-between items-start gap-4 mb-4">
+                        <div className="flex-1 min-w-0 w-full">
+                          <div className="flex items-center gap-2 mb-3 flex-wrap">
+                            <h4 className="font-bold text-gray-900">Order #{order.id}</h4>
                             <Badge className="bg-green-100 text-green-800">Ready for Pickup</Badge>
                           </div>
-                          <p className="text-sm text-gray-600 mb-2">
-                            {order.items.map((i) => `${i.quantity}x ${i.name}`).join(", ")}
-                          </p>
-                          <div className="space-y-1">
-                            <p className="text-sm text-gray-600 flex items-center">
-                              <MapPin className="h-3 w-3 mr-1" />
-                              Pickup: {order.restaurantName}
+                          <div className="grid gap-2 sm:gap-1.5 text-sm text-gray-600">
+                            <p className="flex items-start gap-2">
+                              <MapPin className="h-4 w-4 mt-0.5 text-gray-400 shrink-0" />
+                              <span className="truncate"><span className="font-medium text-gray-900">Pickup:</span> {order.restaurantName}</span>
                             </p>
-                            <p className="text-sm text-gray-600 flex items-center">
-                              <MapPin className="h-3 w-3 mr-1" />
-                              Drop-off: {order.deliveryAddress}
+                            <p className="flex items-start gap-2">
+                              <MapPin className="h-4 w-4 mt-0.5 text-emerald-500 shrink-0" />
+                              <span className="truncate"><span className="font-medium text-gray-900">Drop-off:</span> {order.deliveryAddress}</span>
                             </p>
+                            <div className="pt-2 mt-2 border-t border-gray-100">
+                              <p className="text-sm text-gray-600 flex flex-col sm:flex-row sm:items-baseline gap-1 sm:gap-2">
+                                <span className="font-medium text-gray-900 shrink-0">Items:</span>
+                                <span className="text-gray-500 leading-snug">{order.items.map((i) => `${i.quantity}x ${i.name}`).join(", ")}</span>
+                              </p>
+                            </div>
                           </div>
                         </div>
-                        <div className="text-right">
-                          <p className="text-lg font-semibold text-green-600">₹{order.total.toFixed(2)}</p>
-                          <p className="text-sm text-gray-600">~₹{(order.total * 0.15).toFixed(2)} tip</p>
+                        <div className="w-full sm:w-auto bg-green-50/50 sm:bg-transparent p-3 sm:p-0 rounded-xl sm:rounded-none flex flex-row sm:flex-col justify-between sm:justify-start items-center sm:items-end shrink-0 border sm:border-0 border-green-100 mt-2 sm:mt-0">
+                          <div className="text-left sm:text-right">
+                            <p className="text-lg sm:text-xl font-bold text-gray-900">₹{order.total.toFixed(2)}</p>
+                            <p className="text-[13px] sm:text-sm font-medium text-green-600 sm:text-green-600 mt-0.5 whitespace-nowrap">
+                              ~₹{(order.total * 0.15).toFixed(2)} tip
+                            </p>
+                          </div>
                         </div>
                       </div>
                       <Separator className="my-4" />
@@ -308,11 +315,11 @@ export function DriverDashboard() {
               <div className="space-y-4">
                 {activeOrders.map((order) => (
                   <Card key={order.id}>
-                    <CardContent className="p-6">
-                      <div className="flex justify-between items-start mb-4">
-                        <div>
-                          <div className="flex items-center gap-2 mb-2">
-                            <h4 className="font-semibold">Order #{order.id}</h4>
+                    <CardContent className="p-4 sm:p-6">
+                      <div className="flex flex-col sm:flex-row justify-between items-start gap-4 mb-4">
+                        <div className="flex-1 min-w-0 w-full">
+                          <div className="flex items-center gap-2 mb-3 flex-wrap">
+                            <h4 className="font-bold text-gray-900">Order #{order.id}</h4>
                             <Badge className="bg-blue-100 text-blue-800">
                               <span className="flex items-center gap-1">
                                 <Truck className="h-3 w-3" />
@@ -320,26 +327,31 @@ export function DriverDashboard() {
                               </span>
                             </Badge>
                           </div>
-                          <p className="text-sm text-gray-600 mb-2">
-                            {order.items.map((i) => `${i.quantity}x ${i.name}`).join(", ")}
-                          </p>
-                          <div className="space-y-1">
-                            <p className="text-sm text-gray-600 flex items-center">
-                              <MapPin className="h-3 w-3 mr-1" />
-                              Drop-off: {order.deliveryAddress}
+                          <div className="grid gap-2 sm:gap-1.5 text-sm text-gray-600">
+                            <p className="flex items-start gap-2">
+                              <MapPin className="h-4 w-4 mt-0.5 text-emerald-500 shrink-0" />
+                              <span className="truncate"><span className="font-medium text-gray-900">Drop-off:</span> {order.deliveryAddress}</span>
                             </p>
-                            <p className="text-sm text-gray-600 flex items-center">
-                              <Phone className="h-3 w-3 mr-1" />
-                              {order.customerPhone}
+                            <p className="flex items-start gap-2">
+                              <Phone className="h-4 w-4 mt-0.5 text-blue-500 shrink-0" />
+                              <span className="truncate"><span className="font-medium text-gray-900">Contact:</span> {order.customerPhone}</span>
                             </p>
+                            <div className="pt-2 mt-2 border-t border-gray-100">
+                              <p className="text-sm text-gray-600 flex flex-col sm:flex-row sm:items-baseline gap-1 sm:gap-2">
+                                <span className="font-medium text-gray-900 shrink-0">Items:</span>
+                                <span className="text-gray-500 leading-snug">{order.items.map((i) => `${i.quantity}x ${i.name}`).join(", ")}</span>
+                              </p>
+                            </div>
                           </div>
                         </div>
-                        <div className="text-right">
-                          <p className="text-lg font-semibold text-green-600">₹{order.total.toFixed(2)}</p>
+                        <div className="w-full sm:w-auto bg-gray-50 sm:bg-transparent p-3 sm:p-0 rounded-xl sm:rounded-none flex flex-row sm:flex-col justify-between sm:justify-start items-center sm:items-end shrink-0 border sm:border-0 border-gray-100 mt-2 sm:mt-0">
+                          <div className="text-left sm:text-right">
+                            <p className="text-lg sm:text-xl font-bold text-gray-900">₹{order.total.toFixed(2)}</p>
+                          </div>
                         </div>
                       </div>
                       <Separator className="my-4" />
-                      <div className="flex gap-2">
+                      <div className="flex flex-wrap gap-2">
                         <Button size="sm" className="flex-1" onClick={() => handleMarkDelivered(order.id)}>
                           Mark as Delivered
                         </Button>
@@ -364,17 +376,23 @@ export function DriverDashboard() {
               <div className="space-y-4">
                 {[...completedOrders].reverse().map((order) => (
                   <Card key={order.id}>
-                    <CardContent className="p-6">
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <div className="flex items-center gap-2 mb-1">
-                            <h4 className="font-semibold">Order #{order.id}</h4>
+                    <CardContent className="p-4 sm:p-6">
+                      <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
+                        <div className="flex-1 min-w-0 w-full">
+                          <div className="flex items-center gap-2 mb-2 flex-wrap">
+                            <h4 className="font-bold text-gray-900">Order #{order.id}</h4>
                             <Badge className="bg-green-100 text-green-800">Delivered</Badge>
                           </div>
-                          <p className="text-sm text-gray-600">{order.restaurantName} → {order.customerName}</p>
-                          <p className="text-xs text-gray-500">{new Date(order.updatedAt).toLocaleString()}</p>
+                          <div className="grid gap-1 text-sm text-gray-600">
+                            <p className="flex items-start gap-2">
+                              <span className="truncate"><span className="font-medium text-gray-900">Route:</span> {order.restaurantName} → {order.customerName}</span>
+                            </p>
+                            <p className="text-xs text-gray-500">{new Date(order.updatedAt).toLocaleString()}</p>
+                          </div>
                         </div>
-                        <p className="font-semibold text-green-600">₹{(order.total * 0.15).toFixed(2)}</p>
+                        <div className="w-full sm:w-auto flex flex-row sm:flex-col justify-between items-center sm:items-end shrink-0 border-t sm:border-0 border-gray-100 pt-3 sm:pt-0 mt-2 sm:mt-0">
+                          <p className="text-lg font-bold text-green-600">₹{(order.total * 0.15).toFixed(2)}</p>
+                        </div>
                       </div>
                     </CardContent>
                   </Card>

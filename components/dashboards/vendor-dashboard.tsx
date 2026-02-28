@@ -217,7 +217,7 @@ export function VendorDashboard() {
     <div className="min-h-screen bg-gray-50 overflow-y-auto">
       {/* Toast */}
       {toast && (
-        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[100] bg-emerald-600 text-white px-4 sm:px-6 py-3 rounded-xl shadow-lg flex items-center gap-2 text-sm sm:text-base max-w-[90vw]">
+        <div className="fixed top-[calc(1rem+env(safe-area-inset-top,0px))] left-1/2 -translate-x-1/2 z-[100] bg-emerald-600 text-white px-4 sm:px-6 py-3 rounded-xl shadow-lg flex items-center gap-2 text-sm sm:text-base max-w-[90vw]">
           <CheckCircle className="h-5 w-5" />
           {toast}
         </div>
@@ -227,7 +227,7 @@ export function VendorDashboard() {
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div className="absolute inset-0 bg-black/30" onClick={() => setShowModal(false)} />
-          <div className="relative bg-white rounded-2xl w-full max-w-md p-6 shadow-xl mx-4">
+          <div className="relative bg-white rounded-2xl w-full max-w-md p-6 shadow-xl mx-4 mt-[env(safe-area-inset-top,0px)] mb-[env(safe-area-inset-bottom,0px)] max-h-[calc(100vh-env(safe-area-inset-top,0px)-env(safe-area-inset-bottom,0px))] overflow-y-auto">
             <div className="flex justify-between items-center mb-6">
               <h3 className="text-xl font-bold">{editingItem ? "Edit Menu Item" : "Add Menu Item"}</h3>
               <button onClick={() => setShowModal(false)}><X className="h-5 w-5" /></button>
@@ -264,7 +264,7 @@ export function VendorDashboard() {
       )}
 
       {/* Header */}
-      <header className="bg-white shadow-sm border-b sticky top-0 z-50">
+      <header className="bg-white shadow-sm border-b sticky top-0 z-50 pt-[env(safe-area-inset-top,0px)]">
         <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
           <div className="flex items-center h-16 gap-4">
 
@@ -449,20 +449,20 @@ export function VendorDashboard() {
 
         {/* Main Content */}
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-4 text-xs sm:text-sm mb-6">
-            <TabsTrigger value="orders" className="flex items-center gap-2">
+          <TabsList className="flex w-full overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] justify-start sm:grid sm:grid-cols-4 text-xs sm:text-sm mb-6">
+            <TabsTrigger value="orders" className="flex items-center gap-2 whitespace-nowrap px-3 sm:px-4 shrink-0 sm:shrink">
               <ShoppingCart className="h-4 w-4" />
               Orders
             </TabsTrigger>
-            <TabsTrigger value="menu" className="flex items-center gap-2">
+            <TabsTrigger value="menu" className="flex items-center gap-2 whitespace-nowrap px-3 sm:px-4 shrink-0 sm:shrink">
               <Package className="h-4 w-4" />
               Menu
             </TabsTrigger>
-            <TabsTrigger value="analytics" className="flex items-center gap-2">
+            <TabsTrigger value="analytics" className="flex items-center gap-2 whitespace-nowrap px-3 sm:px-4 shrink-0 sm:shrink">
               <TrendingUp className="h-4 w-4" />
               Analytics
             </TabsTrigger>
-            <TabsTrigger value="profile" className="flex items-center gap-2">
+            <TabsTrigger value="profile" className="flex items-center gap-2 whitespace-nowrap px-3 sm:px-4 shrink-0 sm:shrink">
               <Store className="h-4 w-4" />
               Store
             </TabsTrigger>
@@ -485,11 +485,11 @@ export function VendorDashboard() {
               <div className="space-y-4">
                 {[...orders].reverse().map((order) => (
                   <Card key={order.id}>
-                    <CardContent className="p-6">
-                      <div className="flex justify-between items-start mb-4">
-                        <div>
-                          <div className="flex items-center gap-2 mb-2">
-                            <h4 className="font-semibold">Order #{order.id}</h4>
+                    <CardContent className="p-4 sm:p-6">
+                      <div className="flex flex-col sm:flex-row justify-between items-start gap-4 mb-4">
+                        <div className="flex-1 min-w-0 w-full">
+                          <div className="flex items-center gap-2 mb-3 flex-wrap">
+                            <h4 className="font-bold text-gray-900">Order #{order.id}</h4>
                             <Badge className={getStatusColor(order.status)}>
                               <span className="flex items-center gap-1">
                                 {getStatusIcon(order.status)}
@@ -497,20 +497,34 @@ export function VendorDashboard() {
                               </span>
                             </Badge>
                           </div>
-                          <p className="text-sm text-gray-600 mb-1">
-                            {order.items.map((i) => `${i.quantity}x ${i.name}`).join(", ")}
-                          </p>
-                          <p className="text-sm text-gray-500">
-                            Customer: {order.customerName} • {new Date(order.createdAt).toLocaleTimeString()}
-                          </p>
+                          <div className="grid gap-1.5 sm:gap-1 text-sm text-gray-600">
+                            <p className="flex items-start sm:items-center gap-1.5 sm:gap-2">
+                              <span className="font-medium text-gray-900 min-w-[70px] sm:min-w-0">Customer:</span>
+                              <span className="truncate">{order.customerName}</span>
+                            </p>
+                            <p className="flex items-start sm:items-center gap-1.5 sm:gap-2">
+                              <span className="font-medium text-gray-900 min-w-[70px] sm:min-w-0">Time:</span>
+                              <span>{new Date(order.createdAt).toLocaleTimeString()}</span>
+                            </p>
+                            <div className="pt-2 mt-2 border-t border-gray-100">
+                              <p className="text-sm text-gray-600 flex flex-col sm:flex-row sm:items-baseline gap-1 sm:gap-2">
+                                <span className="font-medium text-gray-900 shrink-0">Items:</span>
+                                <span className="text-gray-500 leading-snug">{order.items.map((i) => `${i.quantity}x ${i.name}`).join(", ")}</span>
+                              </p>
+                            </div>
+                          </div>
                         </div>
-                        <div className="text-right">
-                          <p className="text-lg font-semibold">₹{order.total.toFixed(2)}</p>
-                          <p className="text-sm text-gray-600">{order.customerPhone}</p>
+                        <div className="w-full sm:w-auto bg-gray-50 sm:bg-transparent p-3 sm:p-0 rounded-xl sm:rounded-none flex flex-row sm:flex-col justify-between sm:justify-start items-center sm:items-end shrink-0 border sm:border-0 border-gray-100 mt-2 sm:mt-0">
+                          <div className="text-left sm:text-right">
+                            <p className="text-lg sm:text-xl font-bold text-gray-900">₹{order.total.toFixed(2)}</p>
+                            <p className="text-[13px] sm:text-sm font-medium text-gray-500 mt-0.5 whitespace-nowrap">
+                              {order.customerPhone}
+                            </p>
+                          </div>
                         </div>
                       </div>
                       <Separator className="my-4" />
-                      <div className="flex gap-2">
+                      <div className="flex flex-wrap gap-2">
                         {order.status === "placed" && (
                           <>
                             <Button size="sm" onClick={() => handleAcceptOrder(order.id)}>Accept Order</Button>
@@ -552,34 +566,81 @@ export function VendorDashboard() {
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
               {menuItems.map((item) => (
                 <Card key={item.id} className={!item.isAvailable ? "opacity-60" : ""}>
-                  <CardContent className="p-5">
-                    <div className="flex items-start gap-3">
-                      <img src={item.image} alt={item.name} className="w-16 h-16 rounded-xl object-cover" />
-                      <div className="flex-1 min-w-0">
-                        <div className="flex justify-between items-start">
-                          <div className="min-w-0">
-                            <h4 className="font-semibold truncate">{item.name}</h4>
-                            <p className="text-xs text-gray-500">{item.category}</p>
-                          </div>
-                          <Badge variant={item.isAvailable ? "default" : "secondary"} className="ml-1 shrink-0 text-xs">
-                            {item.isAvailable ? "Live" : "Hidden"}
+                  <CardContent className="p-4 flex justify-between items-start gap-4">
+                    {/* Left side: details */}
+                    <div className="flex-1 min-w-0 pr-2">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className={`w-4 h-4 rounded-sm border-[1.5px] flex items-center justify-center shrink-0 bg-white ${item.isVeg ? "border-green-600" : "border-red-600"}`} title={item.isVeg ? "Veg" : "Non-Veg"}>
+                          <div className={`w-2 h-2 rounded-full ${item.isVeg ? "bg-green-600" : "bg-red-600"}`} />
+                        </span>
+                        <h4 className="font-semibold text-[17px] leading-tight text-gray-900 truncate">{item.name}</h4>
+                      </div>
+                      <p className="text-xs text-gray-500 mb-2">{item.category}</p>
+
+                      <div className="font-bold text-gray-900 mb-2">₹{item.price.toFixed(2)}</div>
+
+                      <p className="text-[13px] text-gray-500 line-clamp-2 mt-0.5 leading-snug mb-3">
+                        {item.description}
+                      </p>
+
+                      <div className="flex flex-wrap gap-1.5 mt-2">
+                        {item.tags.map((tag) => (
+                          <Badge
+                            key={tag}
+                            className={
+                              tag === "Bestseller"
+                                ? "bg-green-50 text-green-700 text-[10px] font-semibold px-2 py-0 border-green-200"
+                                : tag === "Vegetarian"
+                                  ? "bg-emerald-50 text-emerald-700 text-[10px] font-semibold px-2 py-0 border-emerald-200"
+                                  : "bg-orange-50 text-orange-700 text-[10px] font-semibold px-2 py-0 border-orange-200"
+                            }
+                            variant="outline"
+                          >
+                            {tag}
                           </Badge>
-                        </div>
-                        <p className="text-xs text-gray-400 mt-1 line-clamp-1">{item.description}</p>
+                        ))}
                       </div>
                     </div>
-                    <div className="flex justify-between items-center mt-4">
-                      <p className="text-base font-bold">₹{item.price.toFixed(2)}</p>
-                      <div className="flex gap-1.5">
-                        <Button variant="outline" size="sm" onClick={() => openEditModal(item)} className="h-8 px-2">
-                          <Edit className="h-3 w-3" />
-                        </Button>
-                        <Button variant="outline" size="sm" onClick={() => handleToggleAvailability(item)} className="h-8 px-2 text-xs">
-                          {item.isAvailable ? "Hide" : "Show"}
-                        </Button>
-                        <Button variant="outline" size="sm" onClick={() => handleDeleteItem(item.id)} className="h-8 px-2 text-red-500">
-                          <Trash2 className="h-3 w-3" />
-                        </Button>
+
+                    {/* Right side: image + actions */}
+                    <div className="shrink-0 relative flex flex-col items-center w-[120px]">
+                      <div className="flex justify-between w-full absolute -top-2 z-10 left-0 px-1">
+                        <Badge variant={item.isAvailable ? "default" : "secondary"} className="text-[10px] px-1.5 py-0">
+                          {item.isAvailable ? "Live" : "Hidden"}
+                        </Badge>
+                      </div>
+
+                      <div className="w-[120px] h-[120px] rounded-2xl overflow-hidden shadow-sm shadow-black/5 bg-gray-50 border border-gray-100 mt-2">
+                        <img
+                          src={item.image}
+                          alt={item.name}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+
+                      {/* Action Buttons overlaid or positioned slightly below the image */}
+                      <div className="absolute -bottom-3 w-[110%] -left-[5%] flex justify-center gap-1.5 z-10">
+                        <button
+                          onClick={() => openEditModal(item)}
+                          className="w-8 h-8 rounded-full bg-white border border-gray-200 text-gray-600 shadow-sm flex items-center justify-center hover:bg-gray-50 transition-colors"
+                          title="Edit"
+                        >
+                          <Edit className="h-[14px] w-[14px]" />
+                        </button>
+                        <button
+                          onClick={() => handleToggleAvailability(item)}
+                          className={`w-8 h-8 rounded-full bg-white border shadow-sm flex items-center justify-center transition-colors ${item.isAvailable ? 'border-gray-200 text-gray-600 hover:bg-gray-50' : 'border-green-200 text-green-600 hover:bg-green-50'}`}
+                          title={item.isAvailable ? "Hide" : "Show"}
+                        >
+                          <span className="text-[12px] font-bold leading-none">{item.isAvailable ? "⬇" : "⬆"}</span>
+                        </button>
+                        <button
+                          onClick={() => handleDeleteItem(item.id)}
+                          className="w-8 h-8 rounded-full bg-white border border-red-100 text-red-500 shadow-sm flex items-center justify-center hover:bg-red-50 transition-colors"
+                          title="Delete"
+                        >
+                          <Trash2 className="h-[14px] w-[14px]" />
+                        </button>
                       </div>
                     </div>
                   </CardContent>
