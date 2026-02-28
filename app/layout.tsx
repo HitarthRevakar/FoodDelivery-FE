@@ -67,6 +67,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        <script dangerouslySetInnerHTML={{
+          __html: `if('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js');`
+        }} />
+      </head>
       <body className="font-sans antialiased antigravity-scroll-lock">
         {children}
         <Analytics />
